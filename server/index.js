@@ -55,7 +55,35 @@ app.get('/api/hero_publisher', (req, res) => {
 });
 
 
-// Get all supehero
+//Get first n number of heros matching field and pattern
+app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
+    const field = req.params.field;
+    const pattern = req.params.pattern;
+    let n = Number(req.params.n);
+    if (isNaN(n)) {
+        n = Infinity;
+    }
+
+    if (!heroInfo[0].hasOwnProperty(field)) {
+        res.status(400).send(`${field} does not exist!`);
+    }
+
+    const matching_heroID = []
+    heroInfo.forEach((hero) => {
+        if (matching_heroID.length < n) {
+            if (hero[field]===pattern) {
+                matching_heroID.push(hero.id);
+            }
+        }
+    });
+    if (matching_heroID.length === 0) {
+        res.send(`No superheroes had ${pattern} as their ${field}`);
+    }
+    res.send(matching_heroID)
+});
+
+
+// Get all supeheroes
 app.get('/api/hero',(req, res) => {
     res.send(heroInfo)
 });
