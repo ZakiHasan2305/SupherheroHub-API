@@ -9,7 +9,9 @@
   "author": "Zaki Hasan Ali",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "lowdb": "^6.1.1"
+    "lowdb": "^6.1.1",
+    "nodemon": "^3.0.1"
   }
 }
