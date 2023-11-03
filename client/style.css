@@ -1,0 +1,127 @@
+/* Styles for background */
+body {
+    background-color: rgb(180, 252, 249);
+}
+
+#some_hero_div {
+    margin-top: 5%;
+    background-color: rgb(180, 252, 180);
+    border: solid black;
+}
+
+.div_title {
+    text-align: center;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 20px;
+}
+
+/* Style for the search bars and buttons */
+.searchbar_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    grid-gap: 1%;
+    margin: 0 5%;
+}
+
+.searchbar {
+    display: flex;
+    align-items: center;
+}
+
+.searchbar input {
+    padding: 15px;
+    border-radius: 15px;
+    margin-right: 10px;
+    flex: 1;
+}
+
+.searchbar button {
+    border-radius: 15px;
+    background-color: whitesmoke;
+    border: solid black;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    transition-duration: 0.5s;
+    cursor: pointer;
+}
+
+/* button hover styling */
+.searchbar button:hover {
+    background-color: lightgreen;
+    color: black;
+}
+
+/* button active/clicked styling */
+.searchbar button:active {
+    background-color: darkgreen;
+    color: black;
+}
+
+/* Standby width and transitioning for search bar */
+.searchbar input[type="text"] {
+    width: 50%;
+    -webkit-transition: width 0.15s ease-in-out;
+    transition: width 0.15s ease-in-out;
+}
+
+/* When the input field gets focus, change its width to 100% */
+.searchbar input[type="text"]:focus {
+    width: 100%;
+}
+
+/* list styling */
+#list {
+   font-size:  1.5em;
+   margin-left: 90px;
+}
+
+/* styling for titles and header */
+.page_header{
+    text-align: center;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 75px;
+    font-weight: bold;
+}
+
+/* style for author name */
+.author{
+    text-align: center;
+    font-family: cursive;
+    font-size: 20px;
+}
+
+/* description styling */
+.description{
+    text-align: center;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 40px;
+}
+
+/* country list styling*/
+.hero_section {
+    display: grid;
+    list-style: none;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    padding: 5%;
+}
+
+/* hero block styling */
+.hero_block {
+    border-color: black;
+    padding: 10px;
+    text-align: left;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    max-width: 90%;
+    width: 90%;
+    border: 2px solid black;
+    border-radius: 10px;
+    background-color: rgb(233, 203, 253);
+}
+
+
+
+
+

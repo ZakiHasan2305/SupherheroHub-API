@@ -7,7 +7,47 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Super Hero Databse</h1>
-    <p> We got your hero!</p>
+    <!-- Place your content here -->
+    <h1 class="page_header">SE 3316 Lab 3</h1>
+    <h2 class="description">Super Hero Database</h2>
+    <h3 class="author">Zaki Hasan Ali</h3>
+    <!-- div for searchbar and button (input tags) -->
+    <div class="searchbar_grid">
+        <!-- Search Bar for Name -->
+        <div class="searchbar">
+            <input id="searchbar_name" type="text" name="name search" onkeydown="handleEnter(event, 'name')" placeholder="Search by Name">
+            <button name="submit name" type="button" onclick="searchByName()">Submit</button>
+        </div>
+
+        <!-- Search Bar for Race -->
+        <div class="searchbar">
+            <input id="searchbar_race" type="text" name="race search" onkeydown="handleEnter(event, 'race')" placeholder="Search by Race">
+            <button name="submit race" type="button" onclick="searchByRace()">Submit</button>
+        </div>
+
+        <!-- Search Bar for Publisher -->
+        <div class="searchbar">
+            <input id="searchbar_publisher" type="text" name="publisher search" onkeydown="handleEnter(event, 'publisher')" placeholder="Search by Publisher">
+            <button name="submit publisher" type="button" onclick="searchByPublisher()">Submit</button>
+        </div>
+
+        <!-- Search Bar for Power -->
+        <div class="searchbar">
+            <input id="searchbar_power" type="text" name="power search" onkeydown="handleEnter(event, 'power')" placeholder="Search by Power">
+            <button name="submit power" type="button" onclick="searchByPower()" >Submit</button>
+        </div>
+    </div>
+    
+    
+    <div id="some_hero_div">
+
+    </div>
+    
+    <div id="all_hero_div">
+
+    </div>
+
+     <!-- Embedded JavaScript go here -->
+     <script defer src="script.js"></script>
 </body>
 </html>

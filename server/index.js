@@ -10,10 +10,10 @@ const heroPower = require('./superhero_powers.json');
 app.use('/', express.static('client'));
 
 //middleware for logging
-app.use((req,res,next) => {
-    console.log(`${req.method} request for ${req.url}`);
-    next();
-});
+// app.use((req,res,next) => {
+//     console.log(`${req.method} request for ${req.url}`);
+//     next();
+// });
 
 // Get all superhero information for a given ID
 app.get('/api/hero/:hero_id', (req, res) => {
@@ -32,16 +32,15 @@ app.get('/api/hero_power/:hero_id', (req,res) => {
     const name = heroInfo.find(h => h.id === parseInt(id)).name;
     const power_object = heroPower.find(h => h.hero_names === name);
 
-    if (power_object) {
-        const hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
-        console.log(`Powers of ${id}: ${hero_powers}`);
-        res.send(hero_powers);
-    } else {
-        if (name) {
-            res.status(404).send(`Hero ${id} has no powers!`);
+    if (name) {
+        if (power_object) {
+            const hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
+            res.json(hero_powers);
         } else {
-            res.status(404).send(`Hero ${id} was not found!`);
+            res.json(['-']);
         }
+    } else {
+        res.status(404).send(`Hero ${id} was not found!`);
     }
 });
 
@@ -76,10 +75,8 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
             }
         }
     });
-    if (matching_heroID.length === 0) {
-        res.send(`No superheroes had ${pattern} as their ${field}`);
-    }
-    res.send(matching_heroID)
+
+    res.json(matching_heroID)
 });
 
 
