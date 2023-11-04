@@ -10,10 +10,10 @@ const heroPower = require('./superhero_powers.json');
 app.use('/', express.static('client'));
 
 //middleware for logging
-// app.use((req,res,next) => {
-//     console.log(`${req.method} request for ${req.url}`);
-//     next();
-// });
+app.use((req,res,next) => {
+    console.log(`${req.method} request for ${req.url}`);
+    next();
+});
 
 // Get all superhero information for a given ID
 app.get('/api/hero/:hero_id', (req, res) => {
@@ -70,7 +70,7 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
     const matching_heroID = []
     heroInfo.forEach((hero) => {
         if (matching_heroID.length < n) {
-            if (hero[field]===pattern) {
+            if (hero[field].includes(pattern)) {
                 matching_heroID.push(hero.id);
             }
         }

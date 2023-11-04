@@ -3,17 +3,29 @@ body {
     background-color: rgb(180, 252, 249);
 }
 
-#some_hero_div {
-    margin-top: 5%;
-    background-color: rgb(180, 252, 180);
-    border: solid black;
-}
-
 .div_title {
     text-align: center;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 20px;
 }
+
+
+.loading {
+    border: 4px solid rgba(248, 38, 38, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid #3498db;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+    margin-top: 5%;
+    margin-left: 50%;
+    align-self: center;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 
 /* Style for the search bars and buttons */
 .searchbar_grid {
@@ -21,6 +33,14 @@ body {
     grid-template-columns: repeat(4, 1fr); /* 4 columns */
     grid-gap: 1%;
     margin: 0 5%;
+}
+
+.sort_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    grid-gap: 1%;
+    margin: 0 5%;
+    margin-top: 1%;
 }
 
 .searchbar {
@@ -35,26 +55,26 @@ body {
     flex: 1;
 }
 
-.searchbar button {
+button {
     border-radius: 15px;
     background-color: whitesmoke;
     border: solid black;
     color: black;
     text-align: center;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 18px;
     transition-duration: 0.5s;
     cursor: pointer;
 }
 
 /* button hover styling */
-.searchbar button:hover {
+button:hover {
     background-color: lightgreen;
     color: black;
 }
 
 /* button active/clicked styling */
-.searchbar button:active {
+button:active {
     background-color: darkgreen;
     color: black;
 }
