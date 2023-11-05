@@ -1,117 +1,78 @@
-const all_hero_ids = []
 const filtered_div = document.getElementById("some_hero_div");
 
 // Create a loading indicator
 const loadingIndicator = document.createElement('div');
 loadingIndicator.className = 'loading';
-filtered_div.appendChild(loadingIndicator);
 
 // references to the ul
 const ul_filtered_heroes = document.createElement("ul");
 ul_filtered_heroes.id = "ul_filtered_heroes";
 ul_filtered_heroes.className = "hero_section";
 
-fetch('/api/hero')
-.then(res => res.json()
-.then(heroes => {
-    heroes.forEach((hero) => {
-        all_hero_ids.push(hero.id);
-        fetch(`/api/hero_power/${hero.id}`)
-        .then(res => res.json()
-        .then(powers => {
+// fetch('/api/hero')
+// .then(res => res.json()
+// .then(heroes => {
+//     heroes.forEach((hero) => {
+//         all_hero_ids.push(hero.id);
+//         fetch(`/api/hero_power/${hero.id}`)
+//         .then(res => res.json()
+//         .then(powers => {
             
-            const li = document.createElement('li');
-            li.className = 'hero_block';
+//             const li = document.createElement('li');
+//             li.className = 'hero_block';
 
-            let heroInfo = 
-                `<b>id:</b> ${hero.id}<br>
-                <b>name:</b> ${hero.name}<br>
-                <b>Gender:</b> ${hero.Gender}<br>
-                <b>Eye Color:</b> ${hero['Eye color']}<br>
-                <b>Race:</b> ${hero.Race}<br>
-                <b>Hair Color:</b> ${hero['Hair color']}<br>
-                <b>Height:</b> ${hero.Height}<br>
-                <b>Publisher:</b> ${hero.Publisher}<br>
-                <b>Skin Color:</b> ${hero['Skin color']}<br>
-                <b>Alignment:</b> ${hero.Alignment}<br>
-                <b>Weight:</b> ${hero.Weight}<br>
-                <b>Powers:</b> ${powers.join(", ")}`;
+//             let heroInfo = 
+//                 `<b>id:</b> ${hero.id}<br>
+//                 <b>name:</b> ${hero.name}<br>
+//                 <b>Gender:</b> ${hero.Gender}<br>
+//                 <b>Eye Color:</b> ${hero['Eye color']}<br>
+//                 <b>Race:</b> ${hero.Race}<br>
+//                 <b>Hair Color:</b> ${hero['Hair color']}<br>
+//                 <b>Height:</b> ${hero.Height}<br>
+//                 <b>Publisher:</b> ${hero.Publisher}<br>
+//                 <b>Skin Color:</b> ${hero['Skin color']}<br>
+//                 <b>Alignment:</b> ${hero.Alignment}<br>
+//                 <b>Weight:</b> ${hero.Weight}<br>
+//                 <b>Powers:</b> ${powers.join(", ")}`;
 
-            li.innerHTML = heroInfo;
-            ul_filtered_heroes.appendChild(li);
-        }));
-    });
-    // Remove the loading indicator
-    filtered_div.removeChild(loadingIndicator);
-    filtered_div.appendChild(ul_filtered_heroes);
-})); 
+//             li.innerHTML = heroInfo;
+//             ul_filtered_heroes.appendChild(li);
+//         }));
+//     });
+//     // Remove the loading indicator
+//     filtered_div.removeChild(loadingIndicator);
+//     filtered_div.appendChild(ul_filtered_heroes);
+// })); 
 
-console.log(all_hero_ids)
-
-// function to handle enter key being pressed
-function handleEnter(event,buttonType) {
-    if (event.key == "Enter") {
-        switch (buttonType) {
-            case "name":
-                searchByName();
-                break;
-            case "race":
-                searchByRace();
-                break;
-            case "publisher":
-                searchByPublisher();
-                break;
-            case "power":
-                searchByPower();
-                break;
-            default:
-                break;
-        };
+function clearElement(element) {
+    while(element.firstChild) {
+        element.removeChild(element.firstChild);
     }
 }
 
-//search by name
-function searchByName() {
-    const searched_name = document.getElementById('searchbar_name').value;
-    if (searched_name.length) {    
-        fetch(`/api/hero_pattern/name/${searched_name}`)
+function restrictInput(event) {
+    const inputField = document.getElementById("hero_input");
+    const value = inputField.value;
+    const newValue = value.replace(/[^0-9,]/g, ''); // Remove non-numeric characters
+    inputField.value = newValue;
+}
+
+function searchBy(field,element_id) {
+    const pattern = document.getElementById(element_id).value;
+    if (pattern) {
+        fetch(`/api/hero_pattern/${field}/${pattern}`)
         .then(res => res.json()
         .then(hero_id => {
-            populateDiv(hero_id,'Name');
+            console.log(hero_id);
+            populateDiv(hero_id,`Search by ${field}`);
         }));
     } else {
-        populateDiv(all_hero_ids);
+        populateDiv();
     }
 }
 
-function searchByRace() {
-    const searched_race = document.getElementById('searchbar_race').value;
-    if (searched_race.length) {
-        fetch(`/api/hero_pattern/Race/${searched_race}`)
-        .then(res => res.json()
-        .then(hero_id => {
-            populateDiv(hero_id,'Race');
-        }));
-    } else {
-        populateDiv(all_hero_ids);
-    }
-}
-
-function searchByPublisher() {
-    const searched_publisher = document.getElementById('searchbar_publisher').value;
-    if (searched_publisher.length) {
-        fetch(`/api/hero_pattern/Publisher/${searched_publisher}`)
-        .then(res => res.json()
-        .then(hero_id => {
-            populateDiv(hero_id,'Publisher');
-        }));
-    } else {
-        populateDiv(all_hero_ids);
-    }
-}
-
-function searchByPower() {
-    const searched_power = document.getElementById('searchbar_power').value;
+function searchByPower(element_id) {
+    const searched_power = document.getElementById(element_id).value;
     fetch("/api/hero_power")
     .then(res => res.json())
     .then(all_powers => {
@@ -133,13 +94,9 @@ function searchByPower() {
                 hero_id = [].concat(...h_ids);
                 if (hero_id.length) {
                     console.log(typeof hero_id);
-                    populateDiv(hero_id,'Power');
+                    populateDiv(hero_id,'Search by Power');
                 } else {
-                    if (!searched_power) {
-                        populateDiv(all_hero_ids)
-                    } else {
-                        populateDiv()
-                    }
+                    populateDiv()
                 }
             });
     });
@@ -148,9 +105,9 @@ function searchByPower() {
 function sortBy(condition) {
     let i_sorter = 0
     if (condition == 'name') {i_sorter=1;}
-    else if (condition == 'race') {i_sorter=4;}
-    else if (condition == 'publisher') {i_sorter=7;}
-    else if (condition == 'power') {i_sorter=11;}
+    else if (condition == 'Race') {i_sorter=4;}
+    else if (condition == 'Publisher') {i_sorter=7;}
+    else if (condition == 'Power') {i_sorter=11;}
 
     const hero_blocks = document.querySelectorAll('.hero_block');
     console.log(hero_blocks);
@@ -161,41 +118,56 @@ function sortBy(condition) {
         const sorter = lines[i_sorter].trim().split(':')[1].trim();
         hero_objs[id] = sorter;
     }
-
+    console.log(hero_objs)
     const keyValueArray = Object.entries(hero_objs);
     keyValueArray.sort((a,b) => a[1].localeCompare(b[1]));
+    console.log(keyValueArray)
     const sortedkeys = keyValueArray.map(pair => Number(pair[0]));
     console.log(sortedkeys);
-    populateDiv(sortedkeys);
+    populateDiv(sortedkeys,`Sort by ${condition}`);
 }
 
+function createList(element_id) {
+    
+}
 
+function displayList(element_id) {
 
-function populateDiv(hero_id = [],search_method='') {
+}
+
+function updateList(element_id) {
+
+}
+
+function deleteList(element_id) {
+
+}
+
+function populateDiv(hero_id = [],message='') {
     // clear the div from previous events
-    while (filtered_div.firstChild) {
-        filtered_div.removeChild(filtered_div.firstChild);
-    }
+    clearElement(filtered_div);
+    clearElement(ul_filtered_heroes);
 
-    if (search_method.length) {
-        const p_title = document.createElement('p');
-        p_title.className = 'div_title';
-        p_title.innerText = 'Search By '+search_method;
+    const p_title = document.createElement('p');
+    p_title.className = 'status_message';
+    p_title.innerText = message;
+    
+    if (message.length) {
         filtered_div.appendChild(p_title);
     }
 
-    // add loadingIndicator
-    filtered_div.appendChild(loadingIndicator);
+    if (hero_id.length) {
+         // add loadingIndicator
+        filtered_div.appendChild(loadingIndicator);
 
-    // Create an array of promises for each hero fetch
-    const fetchPromises = hero_id.map((id) =>
+        // Create an array of promises for each hero fetch
+        const fetchPromises = hero_id.map((id) =>
         fetch(`/api/hero/${id}`)
             .then((res) => res.json())
-    );
+        );
 
-    // Wait for all promises to resolve
-    Promise.all(fetchPromises)
-        .then((heroes) => {
+        // Wait for all promises to resolve
+        Promise.all(fetchPromises).then((heroes) => {
             // Fetch hero power for each hero
             const powerPromises = heroes.map((hero) =>
                 fetch(`/api/hero_power/${hero.id}`)
@@ -232,4 +204,8 @@ function populateDiv(hero_id = [],search_method='') {
                 filtered_div.appendChild(ul_filtered_heroes);
             });
         });
+    } else {
+        p_title.innerText='No Search Results!'
+        filtered_div.appendChild(p_title);
+    }
 }
