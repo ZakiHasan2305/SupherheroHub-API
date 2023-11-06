@@ -9,6 +9,10 @@ const ul_filtered_heroes = document.createElement("ul");
 ul_filtered_heroes.id = "ul_filtered_heroes";
 ul_filtered_heroes.className = "hero_section";
 
+const p_status = document.createElement('p');
+const status_div = document.getElementById('status_div');
+p_status.className = 'status_message';
+
 // fetch('/api/hero')
 // .then(res => res.json()
 // .then(heroes => {
@@ -55,6 +59,21 @@ function restrictInput(event) {
     const value = inputField.value;
     const newValue = value.replace(/[^0-9,]/g, ''); // Remove non-numeric characters
     inputField.value = newValue;
+}
+
+function addToDatalist() {
+    const datalist = document.getElementById('fav_list');
+    clearElement(datalist);
+    fetch(`/api/hero_db_names`)
+        .then(res => res.json()
+        .then(list_names => {
+            for (nm of list_names) {
+                console.log(nm)
+                const opt = document.createElement('option');
+                opt.value = nm;
+                datalist.appendChild(opt);
+            }
+        }));
 }
 
 function searchBy(field,element_id) {
@@ -127,35 +146,111 @@ function sortBy(condition) {
     populateDiv(sortedkeys,`Sort by ${condition}`);
 }
 
-function createList(element_id) {
-    
+function createList() {
+    clearElement(status_div)
+    const list_name = document.getElementById('create_list_input').value;
+    const newList = {
+        list_name: list_name,
+    }
+    fetch('/api/hero_db_create', {
+        method: 'POST',
+        headers: {'Content-type':'application/json'},
+        body: JSON.stringify(newList)
+    })
+    .then(res => {
+        if (res.ok) {
+            p_status.innerText = `Successfully created ${list_name}`;
+
+        } else {
+            p_status.innerText = `${res.status}: List ${list_name} conflicts (already exists)`;
+        }
+        status_div.appendChild(p_status);
+    });
 }
 
-function displayList(element_id) {
-
+function displayList() {
+    clearElement(status_div);
+    clearElement(filtered_div);
+    const list_name = document.getElementById('fav_list_input').value;
+    fetch(`/api/hero_db_id/${list_name}`)
+    .then(res => res.json())
+    .then(list_obj => {
+        console.log(list_obj)
+        if (list_obj.list_name === null) {
+            p_status.innerText = `List "${list_name}" does not exist.`;
+            status_div.appendChild(p_status);
+        } else {
+            console.log(list_obj.list_id);
+            populateDiv(list_obj.list_id,`Content for List ${list_name}`);
+        }
+    });
 }
 
-function updateList(element_id) {
+function updateList() {
+    const list_name = document.getElementById('fav_list_input').value;
+    const list_ids = document.getElementById('hero_input').value
+        .split(',')
+        .map(key => parseInt(key, 10))
+        .filter(id => !isNaN(id));
 
+    const newList = {
+        list_name : list_name,
+        list_ids : list_ids
+    }
+    fetch('/api/hero_db_add', {
+        method: 'POST',
+        headers: {'Content-type':'application/json'},
+        body: JSON.stringify(newList)
+    })
+    .then(res => {
+        if (res.ok) {
+            p_status.innerText = `Successfully added ID(s) ${list_ids} to ${list_name}`;
+
+        } else {
+            res.json()
+            .then(message => {
+                p_status.innerText = `${res.status}: ${message.message}`;
+            });
+        }
+        status_div.appendChild(p_status);
+    });
 }
 
-function deleteList(element_id) {
+function deleteList() {
+    clearElement(status_div)
+    const list_name = document.getElementById('fav_list_input').value;
+    const newList = {
+        list_name: list_name,
+    }
+    fetch('/api/hero_db_delete', {
+        method: 'POST',
+        headers: {'Content-type':'application/json'},
+        body: JSON.stringify(newList)
+    })
+    .then(res => {
+        if (res.ok) {
+            p_status.innerText = `Successfully deleted ${list_name}`;
 
+        } else {
+            p_status.innerText = `${res.status}: List ${list_name} does not exist!`;
+        }
+        status_div.appendChild(p_status);
+    });
 }
 
 function populateDiv(hero_id = [],message='') {
     // clear the div from previous events
     clearElement(filtered_div);
     clearElement(ul_filtered_heroes);
+    clearElement(status_div);
 
-    const p_title = document.createElement('p');
-    p_title.className = 'status_message';
-    p_title.innerText = message;
+    p_status.innerText = message;
     
     if (message.length) {
-        filtered_div.appendChild(p_title);
+        status_div.appendChild(p_status);
     }
 
+    console.log(hero_id);
     if (hero_id.length) {
          // add loadingIndicator
         filtered_div.appendChild(loadingIndicator);
@@ -205,7 +300,7 @@ function populateDiv(hero_id = [],message='') {
             });
         });
     } else {
-        p_title.innerText='No Search Results!'
-        filtered_div.appendChild(p_title);
+        p_status.innerText='No Search Results!'
+        status_div.appendChild(p_status);
     }
 }

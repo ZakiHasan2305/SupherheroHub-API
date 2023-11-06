@@ -91,23 +91,38 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
         }
     });
 
-    // if (matching_heroID.length) {
+    if (matching_heroID.length) {
         res.json(matching_heroID)
-    // } else {
-    //     res.status(404).send(`${pattern} not found!`)
-    // }
+    } else {
+        res.status(404).send(`${pattern} not found!`)
+    }
 });
 
+
+app.get('/api/hero_db_names', (req, res) => {
+    const dataDb = require('./db.json');
+    const names = Object.keys(dataDb);
+    res.json(names);
+});
 
 //Get hero ID based on listName
 app.get('/api/hero_db_id/:listName',(req, res) => {
     const listName = req.params.listName;
     const all_heroes = store.get(listName);
     if (all_heroes === null || all_heroes === undefined) {
-        res.status(400).send(`List "${listName}" does not exist.`);
+        res.status(400).json({
+            list_name:null,
+            list_id:null,
+            message: `List "${listName}" does not exist.`
+        });
+
     } else {
         const all_hero_id = Object.keys(all_heroes).map(key => parseInt(key, 10));
-        res.send(all_hero_id);
+        res.json({
+            list_name: listName,
+            list_id: all_hero_id,
+            message: null
+        });
     }
 });
 
@@ -124,57 +139,70 @@ app.get('/api/hero_db/:listName',(req, res) => {
 });
 
 //Post to create a new list
-app.post('/api/hero_db/:listName', (req, res) => {
-    const listName = req.params.listName;
-    if (store.get(listName) === null || store.get(listName) === undefined) {
-        store.put(listName, {});
-        res.send(`List ${listName} was added`);
+app.post('/api/hero_db_create', (req, res) => {
+    const list = req.body;
+    const list_name = list.list_name;
+    console.log(typeof list,list);
+    console.log(typeof list_name,list_name);
+    if (store.get(list_name) === null || store.get(list_name) === undefined) {
+        store.put(list_name, {});
+        res.send(`List ${list_name} was added`);
     } else {
-        res.status(409).send(`List ${listName} conflicts (already exists)`);
+        res.status(409).send(`List ${list_name} conflicts (already exists)`);
     }
 });
 
 //Post to add hero IDs and info to a list
-app.post('/api/hero_db/:listName/:ids', (req, res) => {
-    const listName = req.params.listName;
-    const ids = req.params.ids.split(',');
+app.post('/api/hero_db_add', (req, res) => {
+    const list_name = req.body.list_name
+    const ids = req.body.list_ids;
+    console.log(list_name)
+    console.log(ids);
     let heroNotFoundFlag = false;
-    for (id of ids) {
-        const hero = heroInfo.find(h => h.id === parseInt(id));
-        if (hero) {
-            const power_object = heroPower.find(h => h.hero_names === hero.name);
 
-            if (power_object) {
-                var hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
+    if (store.get(list_name) === null || store.get(list_name) === undefined) {
+        res.status(400).json({message:`List ${list_name} does not exist!`});
+    } else {
+        for (id of ids) {
+            const hero = heroInfo.find(h => h.id === parseInt(id));
+            if (hero) {
+                const power_object = heroPower.find(h => h.hero_names === hero.name);
+    
+                if (power_object) {
+                    var hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
+                } else {
+                   hero_powers = '-';
+                }
+                console.log(hero);
+                console.log(hero_powers);
+    
+                store.put(`${list_name}.${id}`,hero);
+                store.put(`${list_name}.${id}.Power`,hero_powers);
+    
             } else {
-               hero_powers = '-';
+                console.log(`Hero ${id} was not found!`);
+                res.status(404).json({message:`Hero ${id} was not found!`});
+                heroNotFoundFlag=true;
+                break;
             }
-            console.log(hero);
-            console.log(hero_powers);
-
-            store.put(`${listName}.${id}`,hero);
-            store.put(`${listName}.${id}.Power`,hero_powers);
-
-        } else {
-            console.log(`Hero ${id} was not found!`)
-            res.status(404).send(`Hero ${id} was not found!`);
-            heroNotFoundFlag=true;
-            break;
         }
-    }
-    if (!heroNotFoundFlag) {
-        res.send(`Successfully added ${ids} to ${listName}`);
+        if (!heroNotFoundFlag) {
+            res.send(`Successfully added ${ids} to ${list_name}`);
+        }
     }
 });
 
 //Post to delete a list
-app.post('/api/hero_db_delete/:listName', (req, res) => {
-    const listName = req.params.listName;
-    if (store.get(listName) === null || store.get(listName) === undefined) {
-        res.status(404).send(`List ${listName} not found!`);
+app.post('/api/hero_db_delete', (req, res) => {
+    const list = req.body;
+    const list_name = list.list_name;
+    console.log(typeof list,list);
+    console.log(typeof list_name,list_name);
+    if (store.get(list_name) === null || store.get(list_name) === undefined) {
+        res.status(400).send(`List ${list_name} does not exist!`);
     } else {
-        store.remove(listName);
-        res.send(`List ${listName} was deleted.`);
+        store.remove(list_name);
+        res.send(`List ${list_name} was deleted`);
     }
 });
 
