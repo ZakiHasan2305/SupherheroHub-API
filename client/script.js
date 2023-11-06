@@ -13,41 +13,6 @@ const p_status = document.createElement('p');
 const status_div = document.getElementById('status_div');
 p_status.className = 'status_message';
 
-// fetch('/api/hero')
-// .then(res => res.json()
-// .then(heroes => {
-//     heroes.forEach((hero) => {
-//         all_hero_ids.push(hero.id);
-//         fetch(`/api/hero_power/${hero.id}`)
-//         .then(res => res.json()
-//         .then(powers => {
-            
-//             const li = document.createElement('li');
-//             li.className = 'hero_block';
-
-//             let heroInfo = 
-//                 `<b>id:</b> ${hero.id}<br>
-//                 <b>name:</b> ${hero.name}<br>
-//                 <b>Gender:</b> ${hero.Gender}<br>
-//                 <b>Eye Color:</b> ${hero['Eye color']}<br>
-//                 <b>Race:</b> ${hero.Race}<br>
-//                 <b>Hair Color:</b> ${hero['Hair color']}<br>
-//                 <b>Height:</b> ${hero.Height}<br>
-//                 <b>Publisher:</b> ${hero.Publisher}<br>
-//                 <b>Skin Color:</b> ${hero['Skin color']}<br>
-//                 <b>Alignment:</b> ${hero.Alignment}<br>
-//                 <b>Weight:</b> ${hero.Weight}<br>
-//                 <b>Powers:</b> ${powers.join(", ")}`;
-
-//             li.innerHTML = heroInfo;
-//             ul_filtered_heroes.appendChild(li);
-//         }));
-//     });
-//     // Remove the loading indicator
-//     filtered_div.removeChild(loadingIndicator);
-//     filtered_div.appendChild(ul_filtered_heroes);
-// })); 
-
 function clearElement(element) {
     while(element.firstChild) {
         element.removeChild(element.firstChild);
@@ -75,6 +40,34 @@ function addToDatalist() {
             }
         }));
 }
+
+// Get all her info from backend
+function getAllHeroes() {
+    fetch(`/api/hero`)
+        .then(res => res.json()
+        .then(data => {
+            console.log(data);
+    }));
+}
+
+// Get all publishers
+function getAllPublishers() {
+    fetch(`/api/hero_publisher`)
+        .then(res => res.json()
+        .then(data => {
+            console.log(data);
+    }));
+}
+
+// Get all hero infor in a given list
+function getHeroInfo(listName) {
+    fetch(`/api/hero_db/${listName}`)
+        .then(res => res.json()
+        .then(data => {
+            console.log(data);
+    }));
+}
+
 
 function searchBy(field,element_id) {
     const pattern = document.getElementById(element_id).value;
