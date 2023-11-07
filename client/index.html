@@ -39,6 +39,7 @@
         </div>
     </div>
 
+    <!-- Sort buttons-->
     <h3 class="section_title">Sort Database</h3>
     <div class="sort_grid">
         <button name="sort by name" type="button" onclick="sortBy('name')">Sort by Name</button>
@@ -47,6 +48,7 @@
         <button name="sort by power" type="button" onclick="sortBy('Power')">Sort by Power</button>
     </div>
 
+    <!--Searchbars, buttons, datatlists for Favourite List-->
     <h3 class="section_title">Favourite Lists</h3>
     <div class = "fav_list_grid">
         <div>
@@ -56,12 +58,9 @@
                 <button class="fav_list_create" onclick="createList()">Create List</button>
             </div>
         </div>
-        
         <div>
             <label for="hero_input">Input Superhero IDs:</label>
-            <div>
-                <input type="text" id="hero_input" pattern="[0-9,]*" oninput="restrictInput(event)" onkeydown="if (event.key === 'Enter') updateList()" placeholder="Input IDs [seperated by ,]">
-            </div>
+            <div><input type="text" id="hero_input" pattern="[0-9,]*" oninput="restrictInput(event)" onkeydown="if (event.key === 'Enter') updateList()" placeholder="Input IDs [seperated by ,]"></div>
         </div>
         <div>
             <label for="fav_list">Select a List:</label>
@@ -80,6 +79,7 @@
         </div>
     </div>
 
+    <!--Empty Divs to populate-->
     <div id="status_div"></div>
     <div id="some_hero_div"></div>
 

@@ -1,5 +1,6 @@
 const express = require('express');
 var Storage = require('node-storage');
+const fs = require('fs');
 
 var store = new Storage('./server/db.json');
 const app = express();
@@ -72,37 +73,45 @@ app.get('/api/hero_publisher', (req, res) => {
 //Get first n number of heros matching field and pattern
 app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
     const field = req.params.field;
-    const pattern = req.params.pattern;
+    const pattern = req.params.pattern.toLowerCase();
     let n = Number(req.params.n);
     if (isNaN(n)) {
         n = Infinity;
     }
 
     if (!heroInfo[0].hasOwnProperty(field)) {
-        res.status(400).send(`${field} does not exist!`);
+        res.status(400).json({ message: `${field} does not exist!` });
     }
 
     const matching_heroID = []
     heroInfo.forEach((hero) => {
         if (matching_heroID.length < n) {
-            if (hero[field].includes(pattern)) {
+            if (hero[field].toLowerCase().startsWith(pattern)) {
                 matching_heroID.push(hero.id);
             }
         }
     });
 
     if (matching_heroID.length) {
+        console.log(matching_heroID)
         res.json(matching_heroID)
     } else {
-        res.status(404).send(`${pattern} not found!`)
+        res.status(404).json({ message: `${pattern} not found!` });
     }
 });
 
 
 app.get('/api/hero_db_names', (req, res) => {
-    const dataDb = require('./db.json');
-    const names = Object.keys(dataDb);
-    res.json(names);
+    fs.readFile('server/db.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Internal server error' });
+        } else {
+            const dataDb = JSON.parse(data);
+            const names = Object.keys(dataDb);
+            res.json(names);
+        }
+    });
 });
 
 //Get hero ID based on listName

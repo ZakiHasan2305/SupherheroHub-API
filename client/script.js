@@ -9,6 +9,7 @@ const ul_filtered_heroes = document.createElement("ul");
 ul_filtered_heroes.id = "ul_filtered_heroes";
 ul_filtered_heroes.className = "hero_section";
 
+// references to the status paragraph
 const p_status = document.createElement('p');
 const status_div = document.getElementById('status_div');
 p_status.className = 'status_message';
@@ -28,17 +29,20 @@ function restrictInput(event) {
 
 function addToDatalist() {
     const datalist = document.getElementById('fav_list');
-    clearElement(datalist);
     fetch(`/api/hero_db_names`)
         .then(res => res.json()
         .then(list_names => {
-            for (nm of list_names) {
-                console.log(nm)
-                const opt = document.createElement('option');
-                opt.value = nm;
-                datalist.appendChild(opt);
+            if (list_names.hasOwnProperty('message')) {
+                populateDiv([],list_names.message)
+            } else {
+                clearElement(datalist);
+                for (nm of list_names) {
+                    const opt = document.createElement('option');
+                    opt.value = nm;
+                    datalist.appendChild(opt);
+                }
             }
-        }));
+    }));
 }
 
 // Get all her info from backend
@@ -75,43 +79,65 @@ function searchBy(field,element_id) {
         fetch(`/api/hero_pattern/${field}/${pattern}`)
         .then(res => res.json()
         .then(hero_id => {
-            console.log(hero_id);
-            populateDiv(hero_id,`Search by ${field}`);
+            if (hero_id.hasOwnProperty('message')) {
+                console.log(hero_id);
+                populateDiv([],hero_id.message);
+            } else {
+                console.log(hero_id);
+                populateDiv(hero_id,`Search by ${field}`);
+            }
         }));
     } else {
-        populateDiv();
+        populateDiv([],'No Search Results');
     }
 }
 
 function searchByPower(element_id) {
     const searched_power = document.getElementById(element_id).value;
-    fetch("/api/hero_power")
-    .then(res => res.json())
-    .then(all_powers => {
-        let hero_id = [];
-        const fetchPromises = [];
+    if (searched_power) {
+        fetch("/api/hero_power")
+        .then(res => res.json())
+        .then(all_powers => {
+            let hero_id = [];
+            const fetchPromises = [];
 
-        hero_names = all_powers.filter(hero => hero[searched_power] === "True")
-                    .map(hero => hero.hero_names);
-        hero_names.forEach((h_name) => {
-            const fetchPromise = fetch(`/api/hero_pattern/name/${h_name}`)
-                .then(res => res.json());
-            
-            fetchPromises.push(fetchPromise);
+            hero_names = all_powers
+                .filter(hero => {
+                    return Object.keys(hero).some(key => {
+                        const value = hero[key].toLowerCase();
+                        return key !== 'hero_names' && value === "true" && key.toLowerCase().startsWith(searched_power.toLowerCase());
+                    });
+                })
+                .map(hero => hero.hero_names);
+            console.log(hero_names)
+            console.log(hero_names.length)
+            if (!hero_names.length) {
+                populateDiv([],"No Search Results")
+            } else {
+                hero_names.forEach((h_name) => {
+                    const fetchPromise = fetch(`/api/hero_pattern/name/${h_name}`)
+                        .then(res => res.json());
+                    
+                    fetchPromises.push(fetchPromise);
+                });
+                Promise.all(fetchPromises)
+                .then(h_ids => {
+                    console.log(h_ids);
+                    // Now, hero_id should be populated
+                    hero_id = [].concat(...h_ids);
+                    if (hero_id.hasOwnProperty('message')) {
+                        console.log(hero_id.message);
+                        populateDiv([],hero_id.message);
+                    } else {
+                        console.log(hero_id)
+                        populateDiv(hero_id.filter(id => Number.isInteger(id)),'Search by Power');
+                    }
+                });
+            }
         });
-
-        Promise.all(fetchPromises)
-            .then(h_ids => {
-                // Now, hero_id should be populated
-                hero_id = [].concat(...h_ids);
-                if (hero_id.length) {
-                    console.log(typeof hero_id);
-                    populateDiv(hero_id,'Search by Power');
-                } else {
-                    populateDiv()
-                }
-            });
-    });
+    } else {
+        populateDiv([],"No Search Results")
+    }
 }
 
 function sortBy(condition) {
@@ -292,8 +318,5 @@ function populateDiv(hero_id = [],message='') {
                 filtered_div.appendChild(ul_filtered_heroes);
             });
         });
-    } else {
-        p_status.innerText='No Search Results!'
-        status_div.appendChild(p_status);
     }
 }
