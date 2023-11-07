@@ -1,18 +1,23 @@
+//require necessary modules
 const express = require('express');
 var Storage = require('node-storage');
 const fs = require('fs');
 
+//use node storage, link to json
 var store = new Storage('./server/db.json');
+
+//Create express application and assign port
 const app = express();
 const port = 3000;
-const router = express.Router();
 
+//require the json files given in data
 const heroInfo = require('./superhero_info.json');
 const heroPower = require('./superhero_powers.json');
 
-//set-up front end
+//static for front end
 app.use('/', express.static('client'));
 
+//use json format
 app.use(express.json());
 
 //middleware for logging
@@ -100,7 +105,7 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
     }
 });
 
-
+//Get all list names stored
 app.get('/api/hero_db_names', (req, res) => {
     fs.readFile('server/db.json', 'utf8', (err, data) => {
         if (err) {

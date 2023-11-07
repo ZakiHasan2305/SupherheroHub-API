@@ -14,12 +14,14 @@ const p_status = document.createElement('p');
 const status_div = document.getElementById('status_div');
 p_status.className = 'status_message';
 
+//clearElement function
 function clearElement(element) {
     while(element.firstChild) {
         element.removeChild(element.firstChild);
     }
 }
 
+//input sanitization for searchbar
 function restrictInput(event) {
     const inputField = document.getElementById("hero_input");
     const value = inputField.value;
@@ -27,6 +29,7 @@ function restrictInput(event) {
     inputField.value = newValue;
 }
 
+//add list names to dropdown
 function addToDatalist() {
     const datalist = document.getElementById('fav_list');
     fetch(`/api/hero_db_names`)
@@ -45,7 +48,7 @@ function addToDatalist() {
     }));
 }
 
-// Get all her info from backend
+// Get all superhero info from backend
 function getAllHeroes() {
     fetch(`/api/hero`)
         .then(res => res.json()
@@ -63,7 +66,7 @@ function getAllPublishers() {
     }));
 }
 
-// Get all hero infor in a given list
+// Get all hero info in a given list
 function getHeroInfo(listName) {
     fetch(`/api/hero_db/${listName}`)
         .then(res => res.json()
@@ -72,7 +75,7 @@ function getHeroInfo(listName) {
     }));
 }
 
-
+//search function for name, race, publisher
 function searchBy(field,element_id) {
     const pattern = document.getElementById(element_id).value;
     if (pattern) {
@@ -92,6 +95,7 @@ function searchBy(field,element_id) {
     }
 }
 
+//search function for power
 function searchByPower(element_id) {
     const searched_power = document.getElementById(element_id).value;
     if (searched_power) {
@@ -109,8 +113,7 @@ function searchByPower(element_id) {
                     });
                 })
                 .map(hero => hero.hero_names);
-            console.log(hero_names)
-            console.log(hero_names.length)
+
             if (!hero_names.length) {
                 populateDiv([],"No Search Results")
             } else {
@@ -140,6 +143,7 @@ function searchByPower(element_id) {
     }
 }
 
+//sort function to sort by name, race, publisher, power
 function sortBy(condition) {
     let i_sorter = 0
     if (condition == 'name') {i_sorter=1;}
@@ -165,6 +169,7 @@ function sortBy(condition) {
     populateDiv(sortedkeys,`Sort by ${condition}`);
 }
 
+//function to create a list 
 function createList() {
     clearElement(status_div)
     const list_name = document.getElementById('create_list_input').value;
@@ -187,6 +192,7 @@ function createList() {
     });
 }
 
+//function to the display a list
 function displayList() {
     clearElement(status_div);
     clearElement(filtered_div);
@@ -205,6 +211,7 @@ function displayList() {
     });
 }
 
+//function to add heros to a list
 function updateList() {
     const list_name = document.getElementById('fav_list_input').value;
     const list_ids = document.getElementById('hero_input').value
@@ -235,6 +242,7 @@ function updateList() {
     });
 }
 
+//function to delete a list
 function deleteList() {
     clearElement(status_div)
     const list_name = document.getElementById('fav_list_input').value;
@@ -257,6 +265,7 @@ function deleteList() {
     });
 }
 
+//populate the div with hero info blocks and display status message
 function populateDiv(hero_id = [],message='') {
     // clear the div from previous events
     clearElement(filtered_div);

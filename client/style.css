@@ -1,9 +1,8 @@
-/* Styles for background */
-body {
+body { /* Style for background */
     background-color: rgb(180, 252, 249);
 }
 
-.status_message {
+.status_message { /* Style for status message paragraph */
     background-color: #E4FFDE;
     color: #000000;
     border: 2px dashed #6D6D6D;
@@ -20,9 +19,7 @@ body {
     border-radius: 10px;
     box-shadow: 0px 0px 6px #038220;
 }
-
-
-.loading {
+.loading { /* Style for loading icon */
     border: 4px solid rgba(248, 38, 38, 0.3);
     border-radius: 50%;
     border-top: 4px solid #3498db;
@@ -38,16 +35,15 @@ body {
 }
 
 
-/* Style for the search bars and buttons */
-.searchbar_grid {
+
+.searchbar_grid {   /* Style for the search functionality div */
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4 columns */
     grid-gap: 1%;
     margin: 0 5%;
     margin-top: 1%;
 }
-
-.sort_grid {
+.sort_grid {    /* Style for the sort functionality div */
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4 columns */
     grid-gap: 1%;
@@ -56,8 +52,7 @@ body {
 } .sort_grid button {
     font-size: 22px;
 }
-
-.fav_list_grid {
+.fav_list_grid {    /* Style for the list functionality div */
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr 1fr;
     margin: 0 5%;
@@ -66,18 +61,19 @@ body {
 }
 
 
-.section_title {
+.section_title { /* Style for the functionality titles */
     text-align: center;
     font-size: 25px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
-.searchbar {
+
+.searchbar { /* Style for the searchbar */
     display: flex;
     align-items: center;
 }
 
-input {
+input { /* Style for the inputs*/
     padding: 15px;
     border-radius: 15px;
     margin-right: 10px;
@@ -96,13 +92,13 @@ input[type="text"]:focus {
 }
 */
 
-label {
+label { /* Style for the labels */
     font-weight: 500;
     font-size: 18px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
-button {
+button { /* Style for the buttons */
     border-radius: 15px;
     background-color: whitesmoke;
     border: solid black;
@@ -150,7 +146,7 @@ button {
     font-size: 40px;
 }
 
-/* country list styling*/
+/* hero list (unordered list) styling*/
 .hero_section {
     display: grid;
     list-style: none;
@@ -159,7 +155,7 @@ button {
     padding: 5%;
 }
 
-/* hero block styling */
+/* hero block (list element) styling */
 .hero_block {
     border-color: black;
     padding: 10px;
