@@ -63,7 +63,7 @@
             <div><input type="text" id="hero_input" pattern="[0-9,]*" oninput="restrictInput(event)" onkeydown="if (event.key === 'Enter') updateList()" placeholder="Input IDs [seperated by ,]"></div>
         </div>
         <div>
-            <label for="fav_list">Select a List:</label>
+            <label for="fav_list_input">Select a List:</label>
             <div>
                 <input list="fav_list" id="fav_list_input" name="fav_list" onclick="addToDatalist()" onkeydown="if (event.key === 'Enter') displayList()" placeholder="Input List Name">
                 <datalist id="fav_list"></datalist>
