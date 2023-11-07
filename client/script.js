@@ -36,7 +36,7 @@ function addToDatalist() {
         .then(res => res.json()
         .then(list_names => {
             if (list_names.hasOwnProperty('message')) {
-                populateDiv([],list_names.message)
+                populateDiv([],list_names.message);
             } else {
                 clearElement(datalist);
                 for (nm of list_names) {
@@ -83,10 +83,8 @@ function searchBy(field,element_id) {
         .then(res => res.json()
         .then(hero_id => {
             if (hero_id.hasOwnProperty('message')) {
-                console.log(hero_id);
                 populateDiv([],hero_id.message);
             } else {
-                console.log(hero_id);
                 populateDiv(hero_id,`Search by ${field}`);
             }
         }));
@@ -115,7 +113,7 @@ function searchByPower(element_id) {
                 .map(hero => hero.hero_names);
 
             if (!hero_names.length) {
-                populateDiv([],"No Search Results")
+                populateDiv([],"No Search Results");
             } else {
                 hero_names.forEach((h_name) => {
                     const fetchPromise = fetch(`/api/hero_pattern/name/${h_name}`)
@@ -125,21 +123,18 @@ function searchByPower(element_id) {
                 });
                 Promise.all(fetchPromises)
                 .then(h_ids => {
-                    console.log(h_ids);
                     // Now, hero_id should be populated
                     hero_id = [].concat(...h_ids);
                     if (hero_id.hasOwnProperty('message')) {
-                        console.log(hero_id.message);
                         populateDiv([],hero_id.message);
                     } else {
-                        console.log(hero_id)
                         populateDiv(hero_id.filter(id => Number.isInteger(id)),'Search by Power');
                     }
                 });
             }
         });
     } else {
-        populateDiv([],"No Search Results")
+        populateDiv([],"No Search Results");
     }
 }
 
@@ -152,7 +147,6 @@ function sortBy(condition) {
     else if (condition == 'Power') {i_sorter=11;}
 
     const hero_blocks = document.querySelectorAll('.hero_block');
-    console.log(hero_blocks);
     const hero_objs = {};
     for (block of hero_blocks) {
         const lines = block.textContent.split('\n');
@@ -160,18 +154,15 @@ function sortBy(condition) {
         const sorter = lines[i_sorter].trim().split(':')[1].trim();
         hero_objs[id] = sorter;
     }
-    console.log(hero_objs)
     const keyValueArray = Object.entries(hero_objs);
     keyValueArray.sort((a,b) => a[1].localeCompare(b[1]));
-    console.log(keyValueArray)
     const sortedkeys = keyValueArray.map(pair => Number(pair[0]));
-    console.log(sortedkeys);
     populateDiv(sortedkeys,`Sort by ${condition}`);
 }
 
 //function to create a list 
 function createList() {
-    clearElement(status_div)
+    clearElement(status_div);
     const list_name = document.getElementById('create_list_input').value;
     const newList = {
         list_name: list_name,
@@ -200,12 +191,10 @@ function displayList() {
     fetch(`/api/hero_db_id/${list_name}`)
     .then(res => res.json())
     .then(list_obj => {
-        console.log(list_obj)
         if (list_obj.list_name === null) {
             p_status.innerText = `List "${list_name}" does not exist.`;
             status_div.appendChild(p_status);
         } else {
-            console.log(list_obj.list_id);
             populateDiv(list_obj.list_id,`Content for List ${list_name}`);
         }
     });
@@ -278,7 +267,6 @@ function populateDiv(hero_id = [],message='') {
         status_div.appendChild(p_status);
     }
 
-    console.log(hero_id);
     if (hero_id.length) {
          // add loadingIndicator
         filtered_div.appendChild(loadingIndicator);

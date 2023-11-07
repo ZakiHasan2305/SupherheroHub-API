@@ -28,12 +28,12 @@ app.use((req,res,next) => {
 
 // Get all supeheroes
 app.get('/api/hero',(req, res) => {
-    res.send(heroInfo)
+    res.send(heroInfo);
 });
 
 // Get all superhero powers
 app.get('/api/hero_power', (req, res) => {
-    res.send(heroPower)
+    res.send(heroPower);
 });
 
 
@@ -98,8 +98,7 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
     });
 
     if (matching_heroID.length) {
-        console.log(matching_heroID)
-        res.json(matching_heroID)
+        res.json(matching_heroID);
     } else {
         res.status(404).json({ message: `${pattern} not found!` });
     }
@@ -144,7 +143,6 @@ app.get('/api/hero_db_id/:listName',(req, res) => {
 app.get('/api/hero_db/:listName',(req, res) => {
     const listName = req.params.listName;
     const all_heroes = store.get(listName);
-    console.log(all_heroes);
     if (all_heroes === null || all_heroes === undefined) {
         res.status(400).send(`List "${listName}" does not exist.`);
     } else {
@@ -156,8 +154,6 @@ app.get('/api/hero_db/:listName',(req, res) => {
 app.post('/api/hero_db_create', (req, res) => {
     const list = req.body;
     const list_name = list.list_name;
-    console.log(typeof list,list);
-    console.log(typeof list_name,list_name);
     if (store.get(list_name) === null || store.get(list_name) === undefined) {
         store.put(list_name, {});
         res.send(`List ${list_name} was added`);
@@ -168,10 +164,8 @@ app.post('/api/hero_db_create', (req, res) => {
 
 //Post to add hero IDs and info to a list
 app.post('/api/hero_db_add', (req, res) => {
-    const list_name = req.body.list_name
+    const list_name = req.body.list_name;
     const ids = req.body.list_ids;
-    console.log(list_name)
-    console.log(ids);
     let heroNotFoundFlag = false;
 
     if (store.get(list_name) === null || store.get(list_name) === undefined) {
@@ -187,14 +181,11 @@ app.post('/api/hero_db_add', (req, res) => {
                 } else {
                    hero_powers = '-';
                 }
-                console.log(hero);
-                console.log(hero_powers);
     
                 store.put(`${list_name}.${id}`,hero);
                 store.put(`${list_name}.${id}.Power`,hero_powers);
     
             } else {
-                console.log(`Hero ${id} was not found!`);
                 res.status(404).json({message:`Hero ${id} was not found!`});
                 heroNotFoundFlag=true;
                 break;
@@ -210,8 +201,6 @@ app.post('/api/hero_db_add', (req, res) => {
 app.post('/api/hero_db_delete', (req, res) => {
     const list = req.body;
     const list_name = list.list_name;
-    console.log(typeof list,list);
-    console.log(typeof list_name,list_name);
     if (store.get(list_name) === null || store.get(list_name) === undefined) {
         res.status(400).send(`List ${list_name} does not exist!`);
     } else {
