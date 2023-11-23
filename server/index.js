@@ -1,5 +1,6 @@
 //require necessary modules
 const express = require('express');
+const cors = require('cors')
 var Storage = require('node-storage');
 const fs = require('fs');
 
@@ -8,17 +9,15 @@ var store = new Storage('./server/db.json');
 
 //Create express application and assign port
 const app = express();
-const port = 3000;
+const port = 8000;
 
 //require the json files given in data
 const heroInfo = require('./superhero_info.json');
 const heroPower = require('./superhero_powers.json');
 
-//static for front end
-app.use('/', express.static('client'));
-
 //use json format
 app.use(express.json());
+app.use(cors());
 
 //middleware for logging
 app.use((req,res,next) => {
@@ -208,6 +207,20 @@ app.post('/api/hero_db_delete', (req, res) => {
         res.send(`List ${list_name} was deleted`);
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //Listen for requests on port
