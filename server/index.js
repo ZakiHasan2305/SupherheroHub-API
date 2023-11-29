@@ -1,11 +1,13 @@
 //require necessary modules
 const express = require('express');
-const cors = require('cors')
+const cors = require('cors');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 var Storage = require('node-storage');
 const fs = require('fs');
 
 //use node storage, link to json
-var store = new Storage('./server/db.json');
+var store = new Storage('../server/db.json');
 
 //Create express application and assign port
 const app = express();
@@ -18,6 +20,31 @@ const heroPower = require('./superhero_powers.json');
 //use json format
 app.use(express.json());
 app.use(cors());
+
+// //Generate secret key for JWT
+// const generateSecretKey = () => {
+//     return crypto.randomBytes(32).toString('hex'); // 32 bytes converted to a hexadecimal string
+// };
+// const secretKey = generateSecretKey();
+
+// // Function to generate a JWT token
+// function generateToken(email) {
+//     return jwt.sign({ email }, secretKey, { expiresIn: '1h' }); // Token expires in 1 hour
+// }
+
+// // Middleware to verify the JWT token
+// function verifyToken(req, res, next) {
+//     const token = req.header('Authorization');
+//     if (!token) return res.status(401).send('Access Denied');
+
+//     try {
+//         const verified = jwt.verify(token, secretKey);
+//         req.user = verified;
+//         next();
+//     } catch (err) {
+//         res.status(400).send('Invalid Token');
+//     }
+// }
 
 //middleware for logging
 app.use((req,res,next) => {
@@ -209,10 +236,73 @@ app.post('/api/hero_db_delete', (req, res) => {
 });
 
 
+//hash password function to hash using scrypt and salt
+async function hash(password) {
+    return new Promise((resolve, reject) => {
+        const salt = crypto.randomBytes(8).toString("hex")
+
+        crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+            if (err) reject(err);
+            resolve(salt + ":" + derivedKey.toString('hex'))
+        });
+    });
+}
+
+//verify hashed password
+async function verify(password, hash) {
+    return new Promise((resolve, reject) => {
+        const [salt, key] = hash.split(":")
+        crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+            if (err) reject(err);
+            resolve(key == derivedKey.toString('hex'))
+        });
+    });
+}
 
 
+//Post to create account in the database
+app.post('/account/create_account',async (req,res) => {
+    const account = req.body;
+    const email = String(account.email);
+    const password = String(account.password);
+    const nickname = String(account.nickname);
 
+    const hashed_pasword = await hash(password);
 
+    if (store.get(email) === null || store.get(email) === undefined) {
+        store.put(email,{"nickname":nickname,"password":hashed_pasword})
+        const token = generateToken(email);
+        res.send(`This account ${email} has been created.`);
+    } else {
+        res.status(409).send(`This account ${email} already exists. Please Log In.`);
+    }
+});
+
+//Post to update password
+app.post('/account/update_password', async (req,res) => {
+    const account = req.body;
+    const email = String(account.email);
+    const old_password = String(account.old_password);
+    const new_password = String(account.new_password);
+
+    const stored_account = store.get(email);
+
+    if (stored_account === null || stored_account === undefined) {
+        res.status(404).send(`This account ${email} does not exist!`)
+    } else {
+        // Verify old password using the stored hashed password
+        const is_password_valid = await verify(old_password, stored_account.password);
+
+        if (is_password_valid) {
+            const new_hashed_password = await hash(new_password);
+            stored_account.password = new_hashed_password;
+            store.put(email,stored_account); 
+            res.send(`The account ${email}'s passowrd has been updated.`);
+        } else {
+            res.status(401).send(`The password you have enterred is incorrect`);
+        }
+    }
+});
 
 
 
