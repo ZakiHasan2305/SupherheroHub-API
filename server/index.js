@@ -2,7 +2,6 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
-var Storage = require('node-storage');
 const mongoose = require('mongoose');
 
 //connect to database
