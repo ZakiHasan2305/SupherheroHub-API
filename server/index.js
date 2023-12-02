@@ -2,12 +2,15 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
 var Storage = require('node-storage');
-const fs = require('fs');
+const mongoose = require('mongoose');
 
-//use node storage, link to json
-var store = new Storage('../server/db.json');
+//connect to database
+require('dotenv').config();
+const mongoString = process.env.DATABASE_URL
+mongoose.connect(mongoString);
+const database = mongoose.connection;
+const Model = require('./model.js');
 
 //Create express application and assign port
 const app = express();
@@ -21,30 +24,9 @@ const heroPower = require('./superhero_powers.json');
 app.use(express.json());
 app.use(cors());
 
-// //Generate secret key for JWT
-// const generateSecretKey = () => {
-//     return crypto.randomBytes(32).toString('hex'); // 32 bytes converted to a hexadecimal string
-// };
-// const secretKey = generateSecretKey();
-
-// // Function to generate a JWT token
-// function generateToken(email) {
-//     return jwt.sign({ email }, secretKey, { expiresIn: '1h' }); // Token expires in 1 hour
-// }
-
-// // Middleware to verify the JWT token
-// function verifyToken(req, res, next) {
-//     const token = req.header('Authorization');
-//     if (!token) return res.status(401).send('Access Denied');
-
-//     try {
-//         const verified = jwt.verify(token, secretKey);
-//         req.user = verified;
-//         next();
-//     } catch (err) {
-//         res.status(400).send('Invalid Token');
-//     }
-// }
+//check if database is connected
+database.on('error', (error) => {console.log(error);})
+database.once('connected', () => {console.log('Database Connected');})
 
 //middleware for logging
 app.use((req,res,next) => {
@@ -130,110 +112,222 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
     }
 });
 
-//Get all list names stored
-app.get('/api/hero_db_names', (req, res) => {
-    fs.readFile('server/db.json', 'utf8', (err, data) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ message: 'Internal server error' });
+// Get all list names stored for an account
+app.get('/api/list_name/:accountEmail', async (req, res) => {
+    const { accountEmail } = req.params;
+
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
         } else {
-            const dataDb = JSON.parse(data);
-            const names = Object.keys(dataDb);
-            res.json(names);
+            const listNames = Array.from(account.lists.keys());
+            res.json(listNames);
         }
-    });
-});
-
-//Get hero ID based on listName
-app.get('/api/hero_db_id/:listName',(req, res) => {
-    const listName = req.params.listName;
-    const all_heroes = store.get(listName);
-    if (all_heroes === null || all_heroes === undefined) {
-        res.status(400).json({
-            list_name:null,
-            list_id:null,
-            message: `List "${listName}" does not exist.`
-        });
-
-    } else {
-        const all_hero_id = Object.keys(all_heroes).map(key => parseInt(key, 10));
-        res.json({
-            list_name: listName,
-            list_id: all_hero_id,
-            message: null
-        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
-//Get hero info based on listName
-app.get('/api/hero_db/:listName',(req, res) => {
-    const listName = req.params.listName;
-    const all_heroes = store.get(listName);
-    if (all_heroes === null || all_heroes === undefined) {
-        res.status(400).send(`List "${listName}" does not exist.`);
-    } else {
-        res.send(all_heroes);
-    }
-});
+// Get hero ID based on listName
+app.get('/api/list_hero_id/:accountEmail/:listName', async (req, res) => {
+    const { accountEmail, listName } = req.params;
 
-//Post to create a new list
-app.post('/api/hero_db_create', (req, res) => {
-    const list = req.body;
-    const list_name = list.list_name;
-    if (store.get(list_name) === null || store.get(list_name) === undefined) {
-        store.put(list_name, {});
-        res.send(`List ${list_name} was added`);
-    } else {
-        res.status(409).send(`List ${list_name} conflicts (already exists)`);
-    }
-});
-
-//Post to add hero IDs and info to a list
-app.post('/api/hero_db_add', (req, res) => {
-    const list_name = req.body.list_name;
-    const ids = req.body.list_ids;
-    let heroNotFoundFlag = false;
-
-    if (store.get(list_name) === null || store.get(list_name) === undefined) {
-        res.status(400).json({message:`List ${list_name} does not exist!`});
-    } else {
-        for (id of ids) {
-            const hero = heroInfo.find(h => h.id === parseInt(id));
-            if (hero) {
-                const power_object = heroPower.find(h => h.hero_names === hero.name);
-    
-                if (power_object) {
-                    var hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
-                } else {
-                   hero_powers = '-';
-                }
-    
-                store.put(`${list_name}.${id}`,hero);
-                store.put(`${list_name}.${id}.Power`,hero_powers);
-    
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
+        } else {
+            const list = account.lists.get(listName);  // Use the get method for maps
+            if (!list) {
+                res.status(400).json({
+                    list_name: null,
+                    list_id: null,
+                    message: `List "${listName}" does not exist.`
+                });
             } else {
-                res.status(404).json({message:`Hero ${id} was not found!`});
-                heroNotFoundFlag=true;
-                break;
+                const heroIds = Object.keys(list.Heroes || {});  // Use Object.keys to get hero IDs
+                res.json({
+                    list_name: listName,
+                    list_id: heroIds,
+                    message: null
+                });
             }
         }
-        if (!heroNotFoundFlag) {
-            res.send(`Successfully added ${ids} to ${list_name}`);
-        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
-//Post to delete a list
-app.post('/api/hero_db_delete', (req, res) => {
-    const list = req.body;
-    const list_name = list.list_name;
-    if (store.get(list_name) === null || store.get(list_name) === undefined) {
-        res.status(400).send(`List ${list_name} does not exist!`);
-    } else {
-        store.remove(list_name);
-        res.send(`List ${list_name} was deleted`);
+// Get hero info based on listName
+app.get('/api/list_hero_info/:accountEmail/:listName', async (req, res) => {
+    const { accountEmail, listName } = req.params;
+
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
+        } else {
+            const list = account.lists.get(listName);  // Use the get method for maps
+            if (!list) {
+                res.status(400).send(`List "${listName}" does not exist.`);
+            } else {
+                const heroes = list.Heroes;
+                res.send(heroes);
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
 });
+
+// Post to create a new list
+app.post('/api/create_list', async (req, res) => {
+    const { accountEmail, list } = req.body;
+    const listName = list.list_name;
+    let listDes = "";
+    let listVisFlag = 'private';
+    if (list.description) { listDes = list.description; }
+    if (list.visibilityFlag) { listVisFlag = list.visibilityFlag; }
+
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
+        } else {
+            if (account.isDisabled) {
+                res.status(401).send(`This account is disabled. Please contact your administrator!`);
+            } else {
+                if (!account.lists.has(listName)) {
+                    account.lists.set(listName, {
+                        listName,
+                        Heroes: {},
+                        description: listDes,
+                        dateModified: new Date(),
+                        visibilityFlag: listVisFlag
+                    });
+
+                    await account.save();
+                    res.send(`List ${listName} was added`);
+                } else {
+                    res.status(409).send(`List ${listName} conflicts (already exists)`);
+                }
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Post to update list details
+app.post('/api/update_list', async (req, res) => {
+    const { accountEmail, list_name, updateFields, hero_ids } = req.body;
+    console.log(updateFields)
+
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
+        } else {
+            if (account.isDisabled) {
+                res.status(401).send(`This account is disabled. Please contact your administrator!`);
+            } else {
+                const list = account.lists.get(list_name);
+
+                if (!list) {
+                    res.status(400).json({ message: `List ${list_name} does not exist!` });
+                } else {
+                    // Update the specified fields
+                    if (updateFields && updateFields.hasOwnProperty('name')) list.listName = updateFields.name;
+                    if (updateFields && updateFields.hasOwnProperty('description')) list.description = updateFields.description;
+                    if (updateFields && updateFields.hasOwnProperty('visibilityFlag')) list.visibilityFlag = updateFields.visibilityFlag;
+                    list.dateModified = new Date();
+                    console.log(list);
+
+                    // Ensure Heroes is initialized
+                    list.Heroes = list.Heroes || {};
+
+                    // Update hero IDs if provided
+                    if (hero_ids) {
+                        await Promise.all(
+                            hero_ids.map(async (id) => {
+                                const hero = heroInfo.find(h => h.id === parseInt(id));
+
+                                if (hero) {
+                                    const power_object = heroPower.find(h => h.hero_names === hero.name);
+
+                                    let hero_powers;
+                                    if (power_object) {
+                                        hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
+                                    } else {
+                                        hero_powers = '-';
+                                    }
+
+                                    const heroData = {
+                                        _id: id,
+                                        ...hero,
+                                        Power: hero_powers,
+                                    };
+
+                                    list.Heroes[id] = heroData;
+                                } else {
+                                    res.status(404).json({ message: `Hero ${id} was not found!` });
+                                    return null;
+                                }
+                            })
+                        );
+                    }
+
+                    // Save the account document with the updated list
+                    await account.save();
+                    res.send(`Successfully updated list ${list_name}`);
+                }
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+
+// Post to delete a list
+app.post('/api/delete_list', async (req, res) => {
+    const { accountEmail, list_name } = req.body;
+
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
+        } else {
+            if (account.isDisabled) {
+                res.status(401).send(`This account is disabled. Please contact your administrator!`);
+            } else {
+                const list = account.lists.get(list_name);
+                if (!list) {
+                    res.status(400).send(`List ${list_name} does not exist!`);
+                } else {
+                    account.lists.delete(list_name);
+                    await account.save();
+                    res.send(`List ${list_name} was deleted`);
+                }
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 
 //hash password function to hash using scrypt and salt
@@ -261,56 +355,182 @@ async function verify(password, hash) {
 
 
 //Post to create account in the database
-app.post('/account/create_account',async (req,res) => {
-    const account = req.body;
-    const email = String(account.email);
-    const password = String(account.password);
-    const nickname = String(account.nickname);
+app.post('/account/create_account', async (req, res) => {
+    const { email, password, username, nickname } = req.body;
 
-    const hashed_pasword = await hash(password);
+    try {
+        const existingAccount = await Model.findOne({ email });
 
-    if (store.get(email) === null || store.get(email) === undefined) {
-        store.put(email,{"nickname":nickname,"password":hashed_pasword})
-        const token = generateToken(email);
-        res.send(`This account ${email} has been created.`);
-    } else {
-        res.status(409).send(`This account ${email} already exists. Please Log In.`);
+        if (!existingAccount) {
+            const hashed_password = await hash(password);
+
+            const newAccount = new Model({
+                email,
+                username,
+                password: hashed_password,
+                nickname,
+                isAuth: false,
+                isAdmin: false,
+                isDisabled: false,
+                lists: {},
+            });
+
+            await newAccount.save();
+            res.send(`This account ${email} has been created.`);
+        } else {
+            res.status(409).send(`This account ${email} already exists. Please Log In.`);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
 });
+
 
 //Post to update password
-app.post('/account/update_password', async (req,res) => {
-    const account = req.body;
-    const email = String(account.email);
-    const old_password = String(account.old_password);
-    const new_password = String(account.new_password);
+app.post('/account/update_password', async (req, res) => {
+    const { email, old_password, new_password } = req.body;
 
-    const stored_account = store.get(email);
+    try {
+        const storedAccount = await Model.findOne({ email });
 
-    if (stored_account === null || stored_account === undefined) {
-        res.status(404).send(`This account ${email} does not exist!`)
-    } else {
-        // Verify old password using the stored hashed password
-        const is_password_valid = await verify(old_password, stored_account.password);
-
-        if (is_password_valid) {
-            const new_hashed_password = await hash(new_password);
-            stored_account.password = new_hashed_password;
-            store.put(email,stored_account); 
-            res.send(`The account ${email}'s passowrd has been updated.`);
+        if (!storedAccount) {
+            res.status(404).send(`This account ${email} does not exist!`);
         } else {
-            res.status(401).send(`The password you have enterred is incorrect`);
+            const is_password_valid = await verify(old_password, storedAccount.password);
+
+            if (is_password_valid) {
+                if (storedAccount.isDisabled) {
+                    res.status(401).send(`This account is disabled. Please contact your administrator!`);
+                } else {
+                    const new_hashed_password = await hash(new_password);
+                    storedAccount.password = new_hashed_password;
+                    await storedAccount.save();
+                    res.send(`The account ${email}'s password has been updated.`);
+                }
+            } else {
+                res.status(401).send(`Invalid username or password.`);
+            }
         }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+//Post to Log In
+app.post('/account/logIn', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const storedAccount = await Model.findOne({ email });
+
+        if (!storedAccount) {
+            res.status(404).send(`The account ${email} does not exist! Please Create an Account.`);
+        } else {
+            const is_password_valid = await verify(password, storedAccount.password);
+
+            if (is_password_valid) {
+                if (storedAccount.isDisabled) {
+                    res.status(401).send(`This account is disabled. Please contact your administrator!`);
+                } else {
+                    res.send(`isAuth:${storedAccount.isAuth}, isAdmin:${storedAccount.isAdmin}`);
+                }
+            } else {
+                res.status(401).send(`Invalid username or password.`);
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+//Post to create admin
+app.post('/admin/create_admin', async (req, res) => {
+    const { email, password, username, nickname } = req.body;
+
+    try {
+        const existingAdmin = await Model.findOne({ email });
+
+        if (!existingAdmin) {
+            const hashed_password = await hash(password);
+
+            const newAdmin = new Model({
+                email,
+                username,
+                password: hashed_password,
+                nickname,
+                isAuth: true,
+                isAdmin: true,
+                isDisabled: false,
+                lists: {},
+            });
+
+            await newAdmin.save();
+            res.send(`The admin account ${email} has been created.`);
+        } else {
+            res.status(409).send(`This account ${email} already exists. Please Log In.`);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+//Post to switch admin permissions
+app.post('/admin/admin_perm', async (req, res) => {
+    const { email, adminEmail } = req.body;
+
+    try {
+        const stored_account = await Model.findOne({ email });
+        const admin_account = await Model.findOne( { email: adminEmail });
+        if (admin_account.isAdmin) {
+            if (!stored_account) {
+                res.status(404).send(`This account ${email} does not exist!`);
+            } else {
+                stored_account.isAdmin = !stored_account.isAdmin;
+                await stored_account.save();
+                if (stored_account.isAdmin) {res.send(`The account ${email} is now an admin`);}
+                else {res.send(`The account ${email} is now not an admin`);}
+            }
+        } else {
+            res.status(401).send(`The account for ${adminEmail} does not have permission!`);
+        }
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(`Internal Server Error`);
     }
 });
 
 
+//Post to mark a user as disabled/enabled
+app.post('/admin/disable_user', async (req, res) => {
+    const { email, adminEmail } = req.body;
 
+    try {
+        const storedAccount = await Model.findOne({ email });
+        const admin_account = await Model.findOne( { email: adminEmail });
 
+        if (admin_account.isAdmin) {
+            if (!storedAccount) {
+                res.status(404).send(`This account ${email} does not exist!`);
+            } else {
+                storedAccount.isDisabled = !storedAccount.isDisabled;
+                await storedAccount.save();
+                if (storedAccount.isDisabled) {res.send(`The account ${email} is now disabled`);}
+                else {res.send(`The account ${email} is now enabled`);}
+            }
+        } else {
+            res.status(401).send(`The account for ${adminEmail} does not have permission!`);
+        }
 
-
-
-
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
 //Listen for requests on port

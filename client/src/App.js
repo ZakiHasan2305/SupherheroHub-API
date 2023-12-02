@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 
-port = 8000;
+const port = 8000;
 
 function App() {
   const [message, setMessage] = useState("");
