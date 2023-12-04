@@ -1,0 +1,32 @@
+.hero_page {
+    background-color: black;
+}
+
+.header {
+    background-color: black;
+    margin-top: 0px;
+}
+
+.header h1 {
+    font-size: 40px;
+    color: rgb(106, 143, 255);
+}
+.header h2 {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bolder;
+    font-size: 25px;
+    color: rgb(106, 143, 255);
+}
+.header p {
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 20px;
+    color: rgb(106, 143, 255);
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+.background {
+    background: url("../Assets/batman-backpose.png") center/cover no-repeat;
+    height: 100vh;
+    padding-top: 15%;
+}

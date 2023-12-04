@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+
+const secretKey = 'f508d3871b2b3b2d74733fe8648fbf818895917a01bb3b73cbdb544f17cfcd98';
 
 //connect to database
 require('dotenv').config();
@@ -352,6 +355,11 @@ async function verify(password, hash) {
     });
 }
 
+// Function to generate JWT token
+function generateVerificationToken(email) {
+    return jwt.sign({ email }, secretKey, { expiresIn: '1h' });
+}
+
 
 //Post to create account in the database
 app.post('/account/create_account', async (req, res) => {
@@ -374,8 +382,16 @@ app.post('/account/create_account', async (req, res) => {
                 lists: {},
             });
 
+            // Generate verification token
+            const verificationToken = generateVerificationToken(email);
+
+            // Include the verification token in the response
+            res.json({
+                message: `Account ${email} has been created.`,
+                token: verificationToken
+            });
+
             await newAccount.save();
-            res.send(`This account ${email} has been created.`);
         } else {
             res.status(409).send(`This account ${email} already exists. Please Log In.`);
         }
@@ -385,6 +401,31 @@ app.post('/account/create_account', async (req, res) => {
     }
 });
 
+
+app.get('/account/verify_email/:token', async (req, res) => {
+    const verificationToken = req.params.token;
+
+    try {
+        const decoded = jwt.verify(verificationToken, secretKey);
+        const userEmail = decoded.email;
+
+        // Update the user's account to mark it as verified
+        const user = await Model.findOne({ email:userEmail });
+        console.log(userEmail)
+
+        if (user) {
+            user.isAuth = true;
+            await user.save();
+
+            res.json({message:`${userEmail}'s account is authenticated successfully!`});
+        } else {
+            res.status(404).send('User not found');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(401).send('Invalid or expired token');
+    }
+});
 
 //Post to update password
 app.post('/account/update_password', async (req, res) => {
@@ -433,7 +474,22 @@ app.post('/account/logIn', async (req, res) => {
                 if (storedAccount.isDisabled) {
                     res.status(401).send(`This account is disabled. Please contact your administrator!`);
                 } else {
-                    res.send(`isAuth:${storedAccount.isAuth}, isAdmin:${storedAccount.isAdmin}`);
+                    
+                    if (storedAccount.isAuth) {
+                        res.json({
+                            message:`You are logged in to ${email}.`,
+                            token:null
+                        });
+                    } else {
+                        // Generate verification token
+                        const verificationToken = generateVerificationToken(email);
+
+                        // Include the verification token in the response
+                        res.json({
+                            message: `You are logged in to ${email}.`,
+                            token: verificationToken
+                        });
+                    }
                 }
             } else {
                 res.status(401).send(`Invalid username or password.`);

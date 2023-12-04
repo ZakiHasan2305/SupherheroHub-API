@@ -1,13 +1,65 @@
+.home_page {
+    background-color: black;
+}
+
+.header {
+    background-color: black;
+    margin-top: 0px;
+}
+
+.header h1 {
+    font-size: 40px;
+    color: rgb(106, 143, 255);
+}
+.header h2 {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bolder;
+    font-size: 25px;
+    color: rgb(106, 143, 255);
+}
+.header p {
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 20px;
+    color: rgb(106, 143, 255);
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
 .container {
     display: flex;
     flex-direction: column;
     margin: auto;
-    margin-top: 200px;
     width: 600px;
-    background: rgba(121, 121, 121, 0.8);
+    background: rgba(0, 0, 0, 0.8);
     padding-bottom: 30px;
     border-radius: 50px;
+    backdrop-filter: blur(2px);
 }
+
+.background {
+    background: url("../Assets/gotham-city.png") center/cover no-repeat;
+    height: 100vh;
+    padding-top: 15%;
+}
+
+.status_message { /* Style for status message paragraph */
+    background-color: #E4FFDE;
+    color: #000000;
+    border: 2px dashed #6D6D6D;
+    padding: 8px;
+    margin: 2%;
+    font-family: monospace,'Courier New', Courier;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 20px;
+    font-variant: small-caps;
+    text-align: center;
+    text-decoration: none;
+    text-transform: capitalize;
+    border-radius: 10px;
+    box-shadow: 0px 0px 6px #038220;
+}
+
 
 .tabs {
     display: flex;
@@ -19,7 +71,7 @@
 .tab {
     cursor: pointer;
     font-size: 30px;
-    color: #3c009d;
+    color: rgb(106, 143, 255);
     font-weight: 700;
     padding-bottom: 5px;
     border-bottom: 2px solid transparent;
@@ -28,16 +80,14 @@
 .active-tab {
     cursor: pointer;
     font-size: 30px;
-    color: #3c009d;
+    color: rgb(106, 143, 255);
     font-weight: 700;
     padding-bottom: 5px;
-    border-bottom: 2px solid #3c009d;
-    background: rgba(213, 213, 213, 0.5);
-    border-radius: 12px;
+    border-bottom: 2px solid rgb(106, 143, 255);
 }
 
 .text {
-    color: #3c009d;
+    color: rgb(106, 143, 255);
     font-size: 48px;
     font-weight: 700;
 }
@@ -45,7 +95,7 @@
 .underline {
     width: 61px;
     height: 6px;
-    background: #3c009d;
+    background: rgb(106, 143, 255);
     border-radius: 9px;
 }
 
@@ -85,7 +135,8 @@
 .submit-container {
     display: flex;
     gap: 30px;
-    margin: 60px auto;
+    margin: 30px auto;
+    justify-content: center;
 }
 
 .submit {
@@ -95,13 +146,23 @@
     width: 220px;
     height: 59px;
     color: #fff;
-    background: #4c00b4;
+    background: rgb(84, 127, 255);
     border-radius: 50px;
     font-size: 19px;
     font-weight: 700;
     cursor: pointer;
+    background-image: linear-gradient(to right, #03263E 0%, #2650da  51%, #03263E  100%);
+    transition: 0.5s;
+    background-size: 200% auto;           
+    box-shadow: 0 0 20px #000000;
+}
+.submit:hover {
+    background-position: right center; /* change the direction of the change here */
+    color: #fff;
+    text-decoration: none;
 }
 .gray{
     background: #eaeaea;
     color: #676767;
 }
+ 
