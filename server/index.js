@@ -4,6 +4,7 @@ const cors = require('cors');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const Fuse = require('fuse.js');
 
 const secretKey = 'f508d3871b2b3b2d74733fe8648fbf818895917a01bb3b73cbdb544f17cfcd98';
 
@@ -111,6 +112,41 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
         res.json(matching_heroID);
     } else {
         res.status(404).json({ message: `${pattern} not found!` });
+    }
+});
+
+// Updated search function for name, race, publisher, and power
+app.get('/api/search', (req, res) => {
+    const name = req.query.name ? req.query.name.toLowerCase() : '';
+    const race = req.query.race ? req.query.race.toLowerCase() : '';
+    const publisher = req.query.publisher ? req.query.publisher.toLowerCase() : '';
+    const power = req.query.power ? req.query.power.toLowerCase() : '';
+
+    const matchingHeroIDs = [];
+
+    heroInfo.forEach((hero) => {
+        if (
+            (name === '' || hero.name.toLowerCase().startsWith(name)) &&
+            (race === '' || hero.Race.toLowerCase().startsWith(race)) &&
+            (publisher === '' || hero.Publisher.toLowerCase().startsWith(publisher))
+        ) {
+            matchingHeroIDs.push(hero.id);
+        }
+    });
+
+    if (matchingHeroIDs.length) {
+        // If power is specified, filter by power
+        if (power !== '') {
+            const filteredHeroIDs = matchingHeroIDs.filter((heroID) => {
+                const powers = heroPower.find((power) => power.id === heroID);
+                return powers && powers.powers.some((p) => p.toLowerCase().startsWith(power));
+            });
+            res.json({filteredHeroIDs});
+        } else {
+            res.json({matchingHeroIDs});
+        }
+    } else {
+        res.status(404).json({message:'No matching heroes found!'});
     }
 });
 
@@ -299,8 +335,6 @@ app.post('/api/update_list', async (req, res) => {
     }
 });
 
-
-
 // Post to delete a list
 app.post('/api/delete_list', async (req, res) => {
     const { accountEmail, list_name } = req.body;
@@ -330,8 +364,6 @@ app.post('/api/delete_list', async (req, res) => {
     }
 });
 
-
-
 //hash password function to hash using scrypt and salt
 async function hash(password) {
     return new Promise((resolve, reject) => {
@@ -356,10 +388,11 @@ async function verify(password, hash) {
 }
 
 // Function to generate JWT token
-function generateVerificationToken(email) {
-    return jwt.sign({ email }, secretKey, { expiresIn: '1h' });
+function generateVerificationToken(account) {
+    return jwt.sign({ 
+        account
+    }, secretKey, { expiresIn: '1h' });
 }
-
 
 //Post to create account in the database
 app.post('/account/create_account', async (req, res) => {
@@ -383,7 +416,7 @@ app.post('/account/create_account', async (req, res) => {
             });
 
             // Generate verification token
-            const verificationToken = generateVerificationToken(email);
+            const verificationToken = generateVerificationToken(newAccount);
 
             // Include the verification token in the response
             res.json({
@@ -407,7 +440,7 @@ app.get('/account/verify_email/:token', async (req, res) => {
 
     try {
         const decoded = jwt.verify(verificationToken, secretKey);
-        const userEmail = decoded.email;
+        const userEmail = decoded.account.email;
 
         // Update the user's account to mark it as verified
         const user = await Model.findOne({ email:userEmail });
@@ -474,22 +507,14 @@ app.post('/account/logIn', async (req, res) => {
                 if (storedAccount.isDisabled) {
                     res.status(401).send(`This account is disabled. Please contact your administrator!`);
                 } else {
-                    
-                    if (storedAccount.isAuth) {
-                        res.json({
-                            message:`You are logged in to ${email}.`,
-                            token:null
-                        });
-                    } else {
                         // Generate verification token
-                        const verificationToken = generateVerificationToken(email);
+                        const verificationToken = generateVerificationToken(storedAccount);
 
                         // Include the verification token in the response
                         res.json({
                             message: `You are logged in to ${email}.`,
                             token: verificationToken
                         });
-                    }
                 }
             } else {
                 res.status(401).send(`Invalid username or password.`);

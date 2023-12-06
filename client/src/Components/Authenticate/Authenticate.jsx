@@ -9,6 +9,7 @@ const Authenticate = () => {
   const navigate = useNavigate();
   const port = 8000;
 
+
   useEffect(() => {
     // You can perform backend verification here using the token
     // Call your backend API with the token and handle the response
@@ -16,7 +17,7 @@ const Authenticate = () => {
     fetch(`http://localhost:${port}/account/verify_email/${token}`)
       .then((res) => {
         if (!res.ok) {
-          throw new Error('Network response was not ok');
+          console.log(res)
         }
 
         // Check if the content type is JSON
@@ -41,10 +42,10 @@ const Authenticate = () => {
 
   return (
     <div className="verification-container">
-      <h2>Verification Status</h2>
-      <p>{verificationMessage}</p>
+      <h2 className='authenticate-h2'>Verification Status</h2>
+      <p className='authenticate-p'>{verificationMessage}</p>
       <div className='submit-container'>
-          <div className='submit' onClick={() => navigate('/Heroes')}>
+          <div className='submit' onClick={() => navigate('/home')}>
               Explore!
           </div>
       </div>

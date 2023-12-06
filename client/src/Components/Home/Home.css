@@ -1,0 +1,36 @@
+.home_page {
+    background-color: black;
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: auto;
+    width: 600px;
+    background: rgba(0, 0, 0, 0.8);
+    padding-bottom: 30px;
+    padding-top: 30px;
+    border-radius: 50px;
+    backdrop-filter: blur(2px);
+}
+
+.home-background {
+    background: url("../Assets/gotham-city.png") center/cover no-repeat;
+    height: 100vh;
+    padding-top: 15%;
+}
+
+.submit-container {
+    display: flex;
+    gap: 30px;
+    margin: 30px auto;
+    justify-content: center;
+}
+
+.explore {
+    font-size: 40px;
+    color: white;
+    text-align: center;
+}
+ 
