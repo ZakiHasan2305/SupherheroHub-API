@@ -16,6 +16,12 @@ const Admin = () => {
     const [isHidden, setIsHidden] = useState(Boolean);
     const [isDisabled, setIsDisabled] = useState(Boolean);
 
+    const [securityPolicy, setSecurityPolicy] = useState('');
+    // State for DMCA notice & takedown policy
+    const [dmcaPolicy, setDmcaPolicy] = useState('');
+    // State for acceptable use policy
+    const [aupPolicy, setAupPolicy] = useState('');
+
     const statusDivRef = useRef(null);
     const userDataListRef = useRef(null)
 
@@ -80,6 +86,21 @@ const Admin = () => {
             updateStatus(error);
         }
     }
+
+    const handleInputChange = (valueSetter, e) => {
+        const inputValue = e.target.value;
+        valueSetter(inputValue);
+    
+        // Validate user-related inputs using regex
+        if (e.target.name === 'user_list') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Adjust the regex as needed
+    
+            if (inputValue.trim() !== '' && !emailRegex.test(inputValue)) {
+                updateStatus(`Please enter a valid email`);
+            }
+        }
+    };
+    
 
     const handleAdminPerm = async () => {
         if ((!inputUserAdmin)) {
@@ -178,7 +199,6 @@ const Admin = () => {
         }
     }
 
-
     return (
         <div className='admin_page'>
             <div className='header'>
@@ -200,11 +220,9 @@ const Admin = () => {
                             <input 
                             list="user_list" 
                             name="user_list" 
-                            onChange={(e) => 
-                                setInputUserAdmin(e.target.value)
-                            }
+                            onChange={(e) => handleInputChange(setInputUserAdmin, e)}
                             onClick={addUserToDatalist} 
-                            placeholder="Input/Choose User" />
+                            placeholder="Input/Choose Email" />
                             <datalist id="user_list"></datalist>
                         </div>
                         <div className='input'>
@@ -235,11 +253,9 @@ const Admin = () => {
                             <input 
                             list="user_list" 
                             name="user_list" 
-                            onChange={(e) => 
-                                setInputUserDisable(e.target.value)
-                            }
+                            onChange={(e) => handleInputChange(setInputUserDisable, e)}
                             onClick={addUserToDatalist} 
-                            placeholder="Input/Choose User" />
+                            placeholder="Input/Choose Email" />
                             <datalist id="user_list"></datalist>
                         </div>
                         <div className='input'>
@@ -271,12 +287,10 @@ const Admin = () => {
                         <div className='input'>
                             <input 
                             list="user_list" 
-                            name="user_list" 
-                            onChange={(e) => 
-                                setInputEmailHidden(e.target.value)
-                            }
+                            name="user_list"
+                            onChange={(e) => handleInputChange(setInputEmailHidden, e)}
                             onClick={addUserToDatalist} 
-                            placeholder="Input/Choose User" />
+                            placeholder="Input/Choose Email" />
                             <datalist id="user_list"></datalist>
                         </div>
                         <div className='input'>

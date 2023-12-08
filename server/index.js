@@ -4,9 +4,10 @@ const cors = require('cors');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-const Fuse = require('fuse.js');
+const stringSimilarity = require('string-similarity');
 
-const secretKey = 'f508d3871b2b3b2d74733fe8648fbf818895917a01bb3b73cbdb544f17cfcd98';
+const config = require('./config');
+const secretKey = config.secretKey;
 
 //connect to database
 require('dotenv').config();
@@ -115,20 +116,62 @@ app.get('/api/hero_pattern/:field/:pattern/:n?', (req, res) => {
     }
 });
 
-// Updated search function for name, race, publisher, and power
+// // Updated search function for name, race, publisher, and power
+// app.get('/api/search', (req, res) => {
+//     const name = req.query.name ? req.query.name.toLowerCase() : '';
+//     const race = req.query.race ? req.query.race.toLowerCase() : '';
+//     const publisher = req.query.publisher ? req.query.publisher.toLowerCase() : '';
+//     const power = req.query.power ? req.query.power.toLowerCase() : '';
+
+//     const matchingHeroIDs = [];
+
+//     heroInfo.forEach((hero) => {
+//         if (
+//             (name === '' || hero.name.toLowerCase().startsWith(name)) &&
+//             (race === '' || hero.Race.toLowerCase().startsWith(race)) &&
+//             (publisher === '' || hero.Publisher.toLowerCase().startsWith(publisher))
+//         ) {
+//             matchingHeroIDs.push(hero.id);
+//         }
+//     });
+
+//     if (matchingHeroIDs.length) {
+//         // If power is specified, filter by power
+//         if (power !== '') {
+//             const filteredHeroIDs = matchingHeroIDs.filter((heroID) => {
+//                 const heroName = heroInfo.find((hero) => hero.id === heroID).name;
+//                 const powers = heroPower.find((power) => power.hero_names === heroName);
+//                 // If power is specified, return hero IDs where the searched power matches any true power
+//                 return (
+//                     powers &&
+//                     Object.entries(powers).some(([powerKey, powerValue]) =>
+//                         powerValue === 'True' && powerKey.toLowerCase().startsWith(power.toLowerCase())
+//                     )
+//                 );
+//             });
+//             res.json({ matchingHeroIDs:filteredHeroIDs });
+//         } else {
+//             res.json({ matchingHeroIDs });
+//         }
+//     } else {
+//         res.status(404).json({ message: 'No matching heroes found!' });
+//     }
+// });
+
+// Updated search function for name, race, publisher, and power with soft search
 app.get('/api/search', (req, res) => {
-    const name = req.query.name ? req.query.name.toLowerCase() : '';
-    const race = req.query.race ? req.query.race.toLowerCase() : '';
-    const publisher = req.query.publisher ? req.query.publisher.toLowerCase() : '';
-    const power = req.query.power ? req.query.power.toLowerCase() : '';
+    const name = req.query.name ? req.query.name.toLowerCase().replace(/\s/g, '') : '';
+    const race = req.query.race ? req.query.race.toLowerCase().replace(/\s/g, '') : '';
+    const publisher = req.query.publisher ? req.query.publisher.toLowerCase().replace(/\s/g, '') : '';
+    const power = req.query.power ? req.query.power.toLowerCase().replace(/\s/g, '') : '';
 
     const matchingHeroIDs = [];
 
     heroInfo.forEach((hero) => {
         if (
-            (name === '' || hero.name.toLowerCase().startsWith(name)) &&
-            (race === '' || hero.Race.toLowerCase().startsWith(race)) &&
-            (publisher === '' || hero.Publisher.toLowerCase().startsWith(publisher))
+            (name === '' || hero.name.toLowerCase().replace(/\s/g, '').startsWith(name) || stringSimilarity.compareTwoStrings(name, hero.name.toLowerCase().replace(/\s/g, '')) > 0.6) &&
+            (race === '' || hero.Race.toLowerCase().replace(/\s/g, '').startsWith(race) || stringSimilarity.compareTwoStrings(race, hero.Race.toLowerCase().replace(/\s/g, '')) > 0.6) &&
+            (publisher === '' || hero.Publisher.toLowerCase().replace(/\s/g, '').startsWith(publisher) || stringSimilarity.compareTwoStrings(publisher, hero.Publisher.toLowerCase().replace(/\s/g, '')) > 0.6)
         ) {
             matchingHeroIDs.push(hero.id);
         }
@@ -140,15 +183,17 @@ app.get('/api/search', (req, res) => {
             const filteredHeroIDs = matchingHeroIDs.filter((heroID) => {
                 const heroName = heroInfo.find((hero) => hero.id === heroID).name;
                 const powers = heroPower.find((power) => power.hero_names === heroName);
+                
                 // If power is specified, return hero IDs where the searched power matches any true power
                 return (
                     powers &&
                     Object.entries(powers).some(([powerKey, powerValue]) =>
-                        powerValue === 'True' && powerKey.toLowerCase().startsWith(power.toLowerCase())
+                        powerValue.toLowerCase() === 'true' &&
+                        stringSimilarity.compareTwoStrings(power, powerKey.toLowerCase().replace(/\s/g, '')) > 0.6
                     )
                 );
             });
-            res.json({ matchingHeroIDs:filteredHeroIDs });
+            res.json({ matchingHeroIDs: filteredHeroIDs });
         } else {
             res.json({ matchingHeroIDs });
         }
@@ -291,6 +336,12 @@ app.post('/api/create_list', async (req, res) => {
             if (account.isDisabled) {
                 res.status(401).send(`This account is disabled. Please contact your administrator!`);
             } else {
+                // Check if the user has reached the limit of 20 lists
+                if (account.lists.size >= 20) {
+                    res.status(403).send(`You have reached the limit of 20 lists. Delete some lists to create a new one.`);
+                    return;
+                }
+
                 if (!account.lists.has(listName)) {
                     // Create a new list
                     const newHeroData = {};
@@ -488,9 +539,11 @@ app.post('/api/create_review', async (req, res) => {
 
                     specificList.reviews.set(String(newReviewID), {
                         userEmail: accountEmail,
+                        userName: account.username,
                         reviewVisibility: true,
-                        comment,
-                        rating
+                        rating,
+                        createdDate: new Date(),
+                        comment
                     });
 
                     // Save the changes to the database

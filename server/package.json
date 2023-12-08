@@ -12,6 +12,7 @@
     "mongoose": "^8.0.2",
     "node": "^21.2.0",
     "node-storage": "^0.0.9",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "string-similarity": "^4.0.4"
   }
 }

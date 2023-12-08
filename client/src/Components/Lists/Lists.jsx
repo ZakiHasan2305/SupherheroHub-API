@@ -463,9 +463,10 @@ const Lists = () => {
                                             .filter(review => review.reviewVisibility !== false)
                                             .map((review, index) => (
                                             <div key={index}>
-                                                <p>User Email: {review.userEmail}</p>
+                                                <p>User: {review.userName}</p>
                                                 <p>Comment: {review.comment}</p>
                                                 <p>Rating: {review.rating}</p>
+                                                <p>Created: {review.createdDate}</p>
                                                 <br></br>
                                             </div>
                                         ))}
@@ -600,7 +601,6 @@ const Lists = () => {
                         </div>
 
 
-
                         <div className="list-container">
                             <div className='tabs'>
                                 <div className='active-tab'>Delete List</div>
@@ -624,8 +624,6 @@ const Lists = () => {
                                 </div>
                             </div>
                         </div>
-
-
 
 
                         <div className="list-container">
@@ -701,9 +699,10 @@ const Lists = () => {
                                                         .filter(review => review.reviewVisibility !== false)
                                                         .map((review, index) => (
                                                         <div key={index}>
-                                                            <p>User Email: {review.userEmail}</p>
+                                                            <p>User: {review.userName}</p>
                                                             <p>Comment: {review.comment}</p>
                                                             <p>Rating: {review.rating}</p>
+                                                            <p>Created: {review.createdDate}</p>
                                                             <br></br>
                                                         </div>
                                                         ))}

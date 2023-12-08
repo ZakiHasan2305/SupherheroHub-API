@@ -25,9 +25,18 @@ const LoginSignup = () => {
         setActiveTab(tab);
     };
 
-    const handleInputChange = (valueSetter,e) => {
-        valueSetter(e.target.value);
+    const handleInputChange = (valueSetter, e) => {
+        const inputValue = e.target.value;
+        valueSetter(inputValue);
         setStatus(""); // Clear status when any input changes
+    
+        // Email validation using regex
+        if (e.target.name === 'email') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (inputValue.trim() !== '' && !emailRegex.test(inputValue)) {
+                setStatus("Please enter a valid email address.");
+            }
+        }
     };
 
     const openVerificationLink = () => {
@@ -116,7 +125,7 @@ const LoginSignup = () => {
                         )}
                         <div className='input'>
                             <img src={email_icon} alt='' />
-                            <input type='email' placeholder='Email' value={email} onChange={(e) => handleInputChange(setEmail,e)} />
+                            <input type='email' placeholder='Email' name='email' value={email} onChange={(e) => handleInputChange(setEmail,e)} />
                         </div>
                         {activeTab === "SignUp" && (
                             <div className='input'>
