@@ -9,7 +9,6 @@ import Heroes from './Components/Heroes/Heroes'
 import Authenticate from './Components/Authenticate/Authenticate'
 import Lists from './Components/Lists/Lists'
 import Admin from './Components/Admin/Admin'
-import Reviews from './Components/Reviews/Reviews'
 
 import "./App.css";
 import UpdatePassword from "./Components/UpdatePassword/UpdatePassword";
@@ -71,7 +70,6 @@ const AppContent = () => {
         <Route path="/updatePassword" element={<UpdatePassword />} />
         <Route path="/heroes" element={<Heroes />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/reviews" element={<Reviews />} />
       </Routes>
     </div>
   );

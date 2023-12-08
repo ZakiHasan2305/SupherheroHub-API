@@ -142,7 +142,7 @@ const LoginSignup = () => {
                                 <div className='submit' onClick={openVerificationLink}>
                                     Authenticate Account
                                 </div>
-                                <div className='submit'>
+                                <div className='submit' onClick={() => navigate('/home')}>
                                     Don't Authenticate
                                 </div>
                             </div>

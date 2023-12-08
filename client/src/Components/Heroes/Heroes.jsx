@@ -178,6 +178,7 @@ const Heroes = () => {
         fetch(`http://localhost:${port}/api/search?name=${searchCriteria.hero_name || ''}&race=${searchCriteria.race || ''}&publisher=${searchCriteria.publisher || ''}&power=${searchCriteria.power || ''}`)
             .then((res) => res.json())
             .then((heroIDs) => {
+                console.log(heroIDs)
                 // Handle the results, update component state, or display accordingly
                 if (heroIDs.hasOwnProperty('message')) {
                     populateDiv(null, heroIDs.message);

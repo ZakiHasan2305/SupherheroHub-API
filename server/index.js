@@ -138,15 +138,22 @@ app.get('/api/search', (req, res) => {
         // If power is specified, filter by power
         if (power !== '') {
             const filteredHeroIDs = matchingHeroIDs.filter((heroID) => {
-                const powers = heroPower.find((power) => power.id === heroID);
-                return powers && powers.powers.some((p) => p.toLowerCase().startsWith(power));
+                const heroName = heroInfo.find((hero) => hero.id === heroID).name;
+                const powers = heroPower.find((power) => power.hero_names === heroName);
+                // If power is specified, return hero IDs where the searched power matches any true power
+                return (
+                    powers &&
+                    Object.entries(powers).some(([powerKey, powerValue]) =>
+                        powerValue === 'True' && powerKey.toLowerCase().startsWith(power.toLowerCase())
+                    )
+                );
             });
-            res.json({filteredHeroIDs});
+            res.json({ matchingHeroIDs:filteredHeroIDs });
         } else {
-            res.json({matchingHeroIDs});
+            res.json({ matchingHeroIDs });
         }
     } else {
-        res.status(404).json({message:'No matching heroes found!'});
+        res.status(404).json({ message: 'No matching heroes found!' });
     }
 });
 
@@ -163,6 +170,47 @@ app.get('/api/list_name/:accountEmail', async (req, res) => {
             const listNames = Array.from(account.lists.keys());
             res.json(listNames);
         }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Get all lists regardless of account
+app.get('/api/lists', async (req, res) => {
+    try {
+        const all_list_info = [];
+        // Fetch all lists from the database
+        const allLists = await Model.find({});
+        for (list of allLists) {
+            for (const [key, value] of list.lists) {
+                console.log(value)
+                all_list_info.push({
+                    list_name:key,
+                    email:list.email,
+                    nickname:list.nickname,
+                    description:value.description,
+                    dateModified: value.dateModified,
+                    visibilityFlag: value.visibilityFlag,
+                    reviews: value.reviews,
+                    Heroes: value.Heroes
+                })
+            }
+        }
+        res.json(all_list_info);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+//Get all users
+app.get('/api/users', async (req,res) => {
+    try {
+        const userInfo = [];
+        const allUsers = await Model.find();
+        console.log(allUsers)
+        res.json(allUsers)
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -229,8 +277,10 @@ app.post('/api/create_list', async (req, res) => {
     const listName = list.list_name;
     let listDes = "";
     let listVisFlag = 'private';
+    let heroID = [];
     if (list.description) { listDes = list.description; }
     if (list.visibilityFlag) { listVisFlag = list.visibilityFlag; }
+    if (list.Heroes) {heroID = list.Heroes; }
 
     try {
         const account = await Model.findOne({ email: accountEmail });
@@ -242,12 +292,45 @@ app.post('/api/create_list', async (req, res) => {
                 res.status(401).send(`This account is disabled. Please contact your administrator!`);
             } else {
                 if (!account.lists.has(listName)) {
+                    // Create a new list
+                    const newHeroData = {};
+
+                    // Fetch hero details based on hero IDs
+                    await Promise.all(
+                        heroID.map(async (id) => {
+                            const hero = heroInfo.find(h => h.id === parseInt(id));
+
+                            if (hero) {
+                                const power_object = heroPower.find(h => h.hero_names === hero.name);
+
+                                let hero_powers;
+                                if (power_object) {
+                                    hero_powers = Object.keys(power_object).filter((prop) => prop !== "hero_names" && power_object[prop] === "True");
+                                } else {
+                                    hero_powers = '-';
+                                }
+
+                                const heroData = {
+                                    _id: id,
+                                    ...hero,
+                                    Power: hero_powers,
+                                };
+
+                                newHeroData[id] = heroData;
+                            } else {
+                                res.status(404).json({ message: `Hero ${id} was not found!` });
+                                return null;
+                            }
+                        })
+                    );
+
                     account.lists.set(listName, {
                         listName,
-                        Heroes: {},
+                        Heroes: newHeroData,
                         description: listDes,
                         dateModified: new Date(),
-                        visibilityFlag: listVisFlag
+                        visibilityFlag: listVisFlag,
+                        reviews:{}
                     });
 
                     await account.save();
@@ -266,7 +349,7 @@ app.post('/api/create_list', async (req, res) => {
 // Post to update list details
 app.post('/api/update_list', async (req, res) => {
     const { accountEmail, list_name, updateFields, hero_ids } = req.body;
-    console.log(updateFields)
+    console.log(accountEmail, list_name, updateFields, hero_ids)
 
     try {
         const account = await Model.findOne({ email: accountEmail });
@@ -278,6 +361,7 @@ app.post('/api/update_list', async (req, res) => {
                 res.status(401).send(`This account is disabled. Please contact your administrator!`);
             } else {
                 const list = account.lists.get(list_name);
+                console.log('list',list)
 
                 if (!list) {
                     res.status(400).json({ message: `List ${list_name} does not exist!` });
@@ -363,6 +447,101 @@ app.post('/api/delete_list', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
+// Post to create a review for a list
+app.post('/api/create_review', async (req, res) => {
+    const { accountEmail, list_name, rating, comment } = req.body;
+    try {
+        const account = await Model.findOne({ email: accountEmail });
+        
+        if (!account) {
+            res.status(404).send(`Account ${accountEmail} not found`);
+        } else {
+            if (account.isDisabled) {
+                res.status(401).send(`This account is disabled. Please contact your administrator!`);
+            } else {
+                const account_of_list = await Model.findOne({ [`lists.${list_name}`]: { $exists: true } });
+
+                if (!account_of_list) {
+                    res.status(400).send(`List ${list_name} does not exist!`);
+                } else {
+                    // Ensure list.reviews exists and is a Map
+                    const specificList = account_of_list.lists.get(list_name);
+
+                    if (!specificList) {
+                        res.status(400).send(`List ${list_name} does not exist in the account!`);
+                    } else if (!specificList.reviews) {
+                        specificList.reviews = new Map();
+                    }
+
+                    // Find the last reviewID
+                    let lastReviewID = 0;
+                    const reviews = specificList.reviews;
+
+                    if (reviews && reviews.size > 0) {
+                        const numericKeys = Array.from(reviews.keys()).map(Number);
+                        lastReviewID = Math.max(...numericKeys);
+                    }
+
+                    // Increment the last reviewID to get a new unique reviewID
+                    const newReviewID = lastReviewID + 1;
+
+                    specificList.reviews.set(String(newReviewID), {
+                        userEmail: accountEmail,
+                        reviewVisibility: true,
+                        comment,
+                        rating
+                    });
+
+                    // Save the changes to the database
+                    await account_of_list.save();
+
+                    res.status(200).send(`Review added successfully with reviewID: ${newReviewID}`);
+                }
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Get the average rating of a list
+app.get('/api/average_rating/:list_name', async (req, res) => {
+    const { list_name } = req.params;
+
+    try {
+        const account_of_list = await Model.findOne({ [`lists.${list_name}`]: { $exists: true } });
+
+        if (!account_of_list) {
+            res.status(400).json({message:`List ${list_name} does not exist!`});
+        } else {
+            const specificList = account_of_list.lists.get(list_name);
+
+            if (!specificList) {
+                res.status(400).json({message:`List ${list_name} does not exist in the account!`});
+            } else if (!specificList.reviews || specificList.reviews.size === 0) {
+                res.status(200).json({message:`List ${list_name} has no reviews yet`, averageRating:'-'});
+            } else {
+                // Calculate the average rating
+                let totalRating = 0;
+                const reviews = specificList.reviews;
+
+                for (const [, review] of reviews) {
+                    totalRating += review.rating;
+                }
+
+                const averageRating = totalRating / reviews.size;
+
+                res.status(200).json({message:`List ${list_name} has an avg rating of ${averageRating.toFixed(2)}`,averageRating:averageRating.toFixed(2)});
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({message:'Internal Server Error'});
+    }
+});
+
 
 //hash password function to hash using scrypt and salt
 async function hash(password) {
@@ -584,7 +763,6 @@ app.post('/admin/admin_perm', async (req, res) => {
     }
 });
 
-
 //Post to mark a user as disabled/enabled
 app.post('/admin/disable_user', async (req, res) => {
     const { email, adminEmail } = req.body;
@@ -612,6 +790,48 @@ app.post('/admin/disable_user', async (req, res) => {
     }
 });
 
+// Post to mark review as hidden
+app.post('/admin/hide_review', async (req, res) => {
+    const { email, list_name, reviewID, adminEmail } = req.body;
+
+    try {
+        const storedAccount = await Model.findOne({ email });
+        const admin_account = await Model.findOne({ email: adminEmail });
+
+        if (admin_account.isAdmin) {
+            if (!storedAccount) {
+                res.status(404).send(`This account ${email} does not exist!`);
+            } else {
+                const specificList = storedAccount.lists.get(list_name);
+
+                if (!specificList) {
+                    res.status(404).send(`List ${list_name} not found for account ${email}`);
+                } else {
+                    const review = specificList.reviews && specificList.reviews.get(reviewID);
+
+                    if (!review) {
+                        res.status(404).send(`Review with ID ${reviewID} not found for account ${email}`);
+                    } else {
+                        // Toggle reviewVisibility
+                        review.reviewVisibility = !review.reviewVisibility;
+                        await storedAccount.save();
+
+                        if (review.reviewVisibility) {
+                            res.send(`Review with ID ${reviewID} for account ${email} is now visible`);
+                        } else {
+                            res.send(`Review with ID ${reviewID} for account ${email} is now hidden`);
+                        }
+                    }
+                }
+            }
+        } else {
+            res.status(401).send(`The account for ${adminEmail} does not have permission!`);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 //Listen for requests on port
 app.listen(port, () => {

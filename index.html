@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Hero Database</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Place your content here -->
+    <h1 class="page_header">SE 3316 Lab 3</h1>
+    <h2 class="description">Super Hero Database</h2>
+    <h3 class="author">Zaki Hasan Ali</h3>
+    <h3 class="section_title">Search Database</h3>
+    <!-- div for searchbar and button (input tags) -->
+    <div class="searchbar_grid">
+        <!-- Search Bar for Name -->
+        <div class="searchbar">
+            <input id="searchbar_name" type="text" name="name search" onkeydown="if (event.key === 'Enter') searchBy('name',this.id)" placeholder="Search by Name">
+            <button name="submit name" type="button" onclick="searchBy('name',this.previousElementSibling.id)">Submit</button>
+        </div>
+
+        <!-- Search Bar for Race -->
+        <div class="searchbar">
+            <input id="searchbar_race" type="text" name="race search" onkeydown="if (event.key === 'Enter') searchBy('Race',this.id)" placeholder="Search by Race">
+            <button name="submit race" type="button" onclick="searchBy('Race',this.previousElementSibling.id)">Submit</button>
+        </div>
+
+        <!-- Search Bar for Publisher -->
+        <div class="searchbar">
+            <input id="searchbar_publisher" type="text" name="publisher search" onkeydown="if (event.key === 'Enter') searchBy('Publisher',this.id)" placeholder="Search by Publisher">
+            <button name="submit publisher" type="button" onclick="searchBy('Publisher',this.previousElementSibling.id)">Submit</button>
+        </div>
+
+        <!-- Search Bar for Power -->
+        <div class="searchbar">
+            <input id="searchbar_power" type="text" name="power search" onkeydown="if (event.key === 'Enter') searchByPower(this.id)" placeholder="Search by Power">
+            <button name="submit power" type="button" onclick="searchByPower(this.previousElementSibling.id)" >Submit</button>
+        </div>
+    </div>
+
+    <!-- Sort buttons-->
+    <h3 class="section_title">Sort Database</h3>
+    <div class="sort_grid">
+        <button name="sort by name" type="button" onclick="sortBy('name')">Sort by Name</button>
+        <button name="sort by race" type="button" onclick="sortBy('Race')">Sort by Race</button>
+        <button name="sort by publisher" type="button" onclick="sortBy('Publisher')">Sort by Publisher</button>
+        <button name="sort by power" type="button" onclick="sortBy('Power')">Sort by Power</button>
+    </div>
+
+    <!--Searchbars, buttons, datatlists for Favourite List-->
+    <h3 class="section_title">Favourite Lists</h3>
+    <div class = "fav_list_grid">
+        <div>
+            <label for="create_list_input">Create a List:</label>
+            <div>
+                <input type="text" id="create_list_input" onkeydown="if (event.key === 'Enter') createList()" placeholder="List Name">
+                <button class="fav_list_create" onclick="createList()">Create List</button>
+            </div>
+        </div>
+        <div>
+            <label for="hero_input">Input Superhero IDs:</label>
+            <div><input type="text" id="hero_input" pattern="[0-9,]*" oninput="restrictInput(event)" onkeydown="if (event.key === 'Enter') updateList()" placeholder="Input IDs [seperated by ,]"></div>
+        </div>
+        <div>
+            <label for="fav_list_input">Select a List:</label>
+            <div>
+                <input list="fav_list" id="fav_list_input" name="fav_list" onclick="addToDatalist()" onkeydown="if (event.key === 'Enter') displayList()" placeholder="Input List Name">
+                <datalist id="fav_list"></datalist>
+            </div>
+        </div>
+        <div>
+            <label>Manage List:</label>
+            <div>
+                <button class="list_display_btn" onclick="displayList()">Display List</button>
+                <button class="list_add_btn" onclick="updateList()">Update List</button>
+                <button class="list_delete_btn" onclick="deleteList()">Delete List</button>
+            </div>
+        </div>
+    </div>
+
+    <!--Empty Divs to populate-->
+    <div id="status_div"></div>
+    <div id="some_hero_div"></div>
+
+
+     <!-- Embedded JavaScript go here -->
+     <script defer src="script.js"></script>
+</body>
+</html>

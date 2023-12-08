@@ -35,6 +35,7 @@ code {
   color: rgb(106, 143, 255);
   margin-left: 20%;
   margin-right: 20%;
+  padding-bottom: 10px;
 }
 
 .input{
@@ -80,6 +81,7 @@ code {
   border-radius: 10px;
   box-shadow: 0px 0px 6px #038220;
 }
+
 .loading { /* Style for loading icon */
   border: 4px solid rgba(248, 38, 38, 0.3);
   border-radius: 50%;
