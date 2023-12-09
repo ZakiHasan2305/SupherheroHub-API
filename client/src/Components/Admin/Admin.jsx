@@ -68,7 +68,7 @@ const Admin = () => {
 
     async function addUserToDatalist() {
         try {
-            const response = await fetch(`http://localhost:${port}/api/users`);
+            const response = await fetch(`/api/users`);
             const data = await response.json();
             
             const userEmails = data.map((user) => user.email);
@@ -89,7 +89,7 @@ const Admin = () => {
 
     const handleInputChange = (valueSetter, e) => {
         const inputValue = e.target.value;
-        valueSetter(inputValue);
+        valueSetter(inputValue.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''));
     
         // Validate user-related inputs using regex
         if (e.target.name === 'user_list') {
@@ -296,7 +296,7 @@ const Admin = () => {
                         <div className='input'>
                         <input 
                             onChange={(e) => 
-                                setInputListHidden(e.target.value)
+                                setInputListHidden(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                             }
                             placeholder="Enter List" />
                         </div>
@@ -304,7 +304,7 @@ const Admin = () => {
                         <input 
                             type='number'
                             onChange={(e) => 
-                                setInputReviewHidden(e.target.value)
+                                setInputReviewHidden(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                             }
                             placeholder="Enter Review ID" />
                         </div>

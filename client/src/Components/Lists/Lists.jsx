@@ -115,6 +115,12 @@ const Lists = () => {
 
     }
 
+    function handleInputSanitization(valueSetter, event) {
+        const inputValue = event.target.value;
+        const sanitizedValue = inputValue.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g, '');
+        valueSetter(sanitizedValue);
+    }
+
     //input sanitization for searchbar
     function restrictInput(event) {
         const value = inputFieldRef.current.value;
@@ -492,7 +498,7 @@ const Lists = () => {
                                     <input
                                         type='text'
                                         placeholder='List Name'
-                                        onChange={(e) => setNewListName(e.target.value)}
+                                        onChange={(e) => setNewListName(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))}
                                     />
                                 </div>
                                 <div className='input'>
@@ -510,7 +516,7 @@ const Lists = () => {
                                     <input
                                         type='text'
                                         placeholder='Description (Optional)'
-                                        onChange={(e) => setNewListDescription(e.target.value)}
+                                        onChange={(e) => setNewListDescription(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))}
                                     />
                                 </div>
                                 <div className='input'>
@@ -546,7 +552,7 @@ const Lists = () => {
                                     id="my_list_input" 
                                     name="my_list" 
                                     onChange={(e) => 
-                                        setInputDataList(e.target.value)
+                                        setInputDataList(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                                     }
                                     onClick={addToDatalist} 
                                     placeholder="Input/Choose List to Update" />
@@ -557,7 +563,7 @@ const Lists = () => {
                                         type='text'
                                         placeholder='New List Name'
                                         onChange={(e) => 
-                                            setNewListNameUpdate(e.target.value)
+                                            setNewListNameUpdate(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                                         }
                                     />
                                 </div>
@@ -576,7 +582,7 @@ const Lists = () => {
                                     <input
                                         type='text'
                                         placeholder='Description'
-                                        onChange={(e) => setNewListDescriptionUpdate(e.target.value)}
+                                        onChange={(e) => setNewListDescriptionUpdate(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))}
                                     />
                                 </div>
                                 <div className='input'>
@@ -611,7 +617,7 @@ const Lists = () => {
                                     list="my_list" 
                                     name="my_list" 
                                     onChange={(e) => 
-                                        setInputDataListDelete(e.target.value)
+                                        setInputDataListDelete(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                                     }
                                     onClick={addToDatalist} 
                                     placeholder="Input/Choose List to Delete" />
@@ -636,7 +642,7 @@ const Lists = () => {
                                     list="public_list" 
                                     name="public_list" 
                                     onChange={(e) => 
-                                        setInputDataListReview(e.target.value)
+                                        setInputDataListReview(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                                     }
                                     onClick={addPublicToDatalist} 
                                     placeholder="Input/Choose Public List to Review" />
@@ -658,7 +664,7 @@ const Lists = () => {
                                         type='text'
                                         placeholder='Comment'
                                         onChange={(e) => 
-                                            setReviewComment(e.target.value)
+                                            setReviewComment(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''))
                                         }
                                     />
                                 </div>

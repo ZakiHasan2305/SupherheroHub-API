@@ -27,7 +27,7 @@ const LoginSignup = () => {
 
     const handleInputChange = (valueSetter, e) => {
         const inputValue = e.target.value;
-        valueSetter(inputValue);
+        valueSetter(inputValue.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''));
         setStatus(""); // Clear status when any input changes
     
         // Email validation using regex

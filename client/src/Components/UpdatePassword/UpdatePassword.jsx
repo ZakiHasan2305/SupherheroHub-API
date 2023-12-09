@@ -14,7 +14,7 @@ const UpdatePassword = () => {
     const navigate = useNavigate();
 
     const handleInputChange = (valueSetter,e) => {
-        valueSetter(e.target.value);
+        valueSetter(e.target.value.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g,''));
         setStatus(""); // Clear status when any input changes
     };
 

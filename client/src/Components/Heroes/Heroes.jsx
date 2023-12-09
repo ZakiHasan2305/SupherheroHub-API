@@ -168,15 +168,31 @@ const Heroes = () => {
         }
     }
 
-    const handleInputChange = (field, value) => {
+    const handleInputChange = (field, e) => {
         clearElement(statusDivRef.current)
-        setSearchCriteria({ ...searchCriteria, [field]: value });
+        setSearchCriteria({ ...searchCriteria, [field]: e.target.value });
+
+        const inputElement = e.target;
+        const inputValue = inputElement.value;
+        const sanitizedValue = inputValue.replace(/[^a-zA-Z0-9\s!@#$%^&*_=:;,.?~\-+]+/g, '');
+        // Update the input element's value directly
+        inputElement.value = sanitizedValue;
     };
+
+    
 
     const handleSearch = () => {
         // Make a request to your server with the searchCriteria
-        fetch(`http://localhost:${port}/api/search?name=${searchCriteria.hero_name || ''}&race=${searchCriteria.race || ''}&publisher=${searchCriteria.publisher || ''}&power=${searchCriteria.power || ''}`)
-            .then((res) => res.json())
+        fetch(`/api/search?name=${searchCriteria.hero_name || ''}&race=${searchCriteria.race || ''}&publisher=${searchCriteria.publisher || ''}&power=${searchCriteria.power || ''}`,{
+            headers: {
+              'Content-Type': 'application/json',
+            },
+        })
+            .then((res) => res.text())
+            .then((text) => {
+                console.log('Raw response:', text); // Log the raw response
+                return JSON.parse(text);
+            })
             .then((heroIDs) => {
                 console.log(heroIDs)
                 // Handle the results, update component state, or display accordingly
@@ -210,7 +226,7 @@ const Heroes = () => {
                             type='text'
                             placeholder='Name'
                             value={searchCriteria.hero_name}
-                            onChange={(e) => handleInputChange('hero_name', e.target.value)}
+                            onChange={(e) => handleInputChange('hero_name', e)}
                         />
                     </div>
                     <div className='input'>
@@ -219,7 +235,7 @@ const Heroes = () => {
                             type='text'
                             placeholder='Race'
                             value={searchCriteria.race}
-                            onChange={(e) => handleInputChange('race', e.target.value)}
+                            onChange={(e) => handleInputChange('race', e)}
                         />
                     </div>
                     <div className='input'>
@@ -228,7 +244,7 @@ const Heroes = () => {
                             type='text'
                             placeholder='Publisher'
                             value={searchCriteria.publisher}
-                            onChange={(e) => handleInputChange('publisher', e.target.value)}
+                            onChange={(e) => handleInputChange('publisher', e)}
                         />
                     </div>
                     <div className='input'>
@@ -237,7 +253,7 @@ const Heroes = () => {
                             type='text'
                             placeholder='Power'
                             value={searchCriteria.power}
-                            onChange={(e) => handleInputChange('power', e.target.value)}
+                            onChange={(e) => handleInputChange('power', e)}
                         />
                     </div>
                 </div>
