@@ -183,16 +183,8 @@ const Heroes = () => {
 
     const handleSearch = () => {
         // Make a request to your server with the searchCriteria
-        fetch(`/api/search?name=${searchCriteria.hero_name || ''}&race=${searchCriteria.race || ''}&publisher=${searchCriteria.publisher || ''}&power=${searchCriteria.power || ''}`,{
-            headers: {
-              'Content-Type': 'application/json',
-            },
-        })
-            .then((res) => res.text())
-            .then((text) => {
-                console.log('Raw response:', text); // Log the raw response
-                return JSON.parse(text);
-            })
+        fetch(`http://localhost:${port}/api/search?name=${searchCriteria.hero_name || ''}&race=${searchCriteria.race || ''}&publisher=${searchCriteria.publisher || ''}&power=${searchCriteria.power || ''}`)
+            .then((res) => res.json())
             .then((heroIDs) => {
                 console.log(heroIDs)
                 // Handle the results, update component state, or display accordingly
@@ -207,6 +199,7 @@ const Heroes = () => {
                 console.error('Error fetching data:', error);
             });
     };
+    
 
     return (
         <div className='hero_page'>
